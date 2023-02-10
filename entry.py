@@ -34,12 +34,28 @@ def parse_line(line: str):
 
 class Entry(object):
     def __init__(self, line):
-        self.timestamp = line[0]
+        self.timestamp = int(line[0])
         self.logtype = line[1]
         self.data = line[2]
 
     def __str__(self):
         return 'Time: ' + str(self.timestamp) + ' Type: ' + str(self.logtype) + 'Data: ' + str(self.data)
+
+    # standard compare: 0 if good, -1 if x < y, 1 if x > y
+    # if timestamp < this, return -1.
+    # if timestamp > this, return 1
+    def compare_timestamp(self, timestamp):
+        if self.timestamp == timestamp:
+            return 0
+        if timestamp < self.timestamp:
+            return -1
+        return 1
+
+    def compare_timestamp_entry(self, other):
+        if not isinstance(other, Entry):
+            raise TypeError('invalid type')
+        return self.compare_timestamp(other.timestamp)
+
 
 
 class DisplayState(Entry):

@@ -12,4 +12,7 @@ def print_hi(name):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     log = EnvironmentLog('./data/nicelog.txt')
+    log.print_logs()
+    res = log.get_power_for_time(783838073446)
+    print(res)
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
