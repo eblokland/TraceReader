@@ -34,6 +34,7 @@ def check_timestamp_position(timestamp, position, logs: list[Entry]):
     # the next log must be from before our timestamp, return that target > position
     return 1
 
+
 # binary search the log list for the timestamp occurring closest to the given timestamp, but not in the future.
 def bin_search(begin, end, timestamp, logs: list[Entry]):
     # base case: we're out of options
@@ -44,8 +45,8 @@ def bin_search(begin, end, timestamp, logs: list[Entry]):
     if comp == 0:
         return logs[middle].data
     if comp == -1:
-        return bin_search(begin, middle-1, timestamp, logs)
-    return bin_search(middle+1, end, timestamp, logs)
+        return bin_search(begin, middle - 1, timestamp, logs)
+    return bin_search(middle + 1, end, timestamp, logs)
 
 
 class EnvironmentLog(object):
@@ -54,18 +55,23 @@ class EnvironmentLog(object):
             logfile = open(logfile)
         lines = logfile.readlines()
         logs = map(lambda line: parse_line(line), lines)
+        self.raw_logs = list(logs)
         lastvoltage = None
         lastcurrent = None
 
         def lam(log):
             nonlocal lastvoltage, lastcurrent
             if type(log) is Voltage:
+                if lastvoltage is not None and log.timestamp < lastvoltage.timestamp:
+                    raise AssertionError('out of order processing of logs, not good')
                 lastvoltage = log
                 if lastcurrent is not None:
                     return Power(lastvoltage, lastcurrent)
                 else:
                     return None
             elif type(log) is Current:
+                if lastcurrent is not None and log.timestamp < lastcurrent.timestamp:
+                    raise AssertionError('out of order processing of logs')
                 lastcurrent = log
                 if lastvoltage is not None:
                     return Power(lastvoltage, lastcurrent)
@@ -74,12 +80,14 @@ class EnvironmentLog(object):
             else:
                 return log
 
-        self.logs = list(filter(lambda log: log is not None, map(lam, logs)))
+        self.logs = list(filter(lambda log: log is not None, map(lam, self.raw_logs)))
         self.logs.sort(key=attrgetter('timestamp'))
-        self.power_logs = list(filter(lambda log: type(log) is Power, self.logs))
+        self.power_logs = list(filter(lambda log: isinstance(log, Power), self.logs))
 
-    def print_logs(self):
-        for log in self.logs:
+    def print_logs(self, logs=None):
+        if logs is None:
+            logs = self.logs
+        for log in logs:
             print(str(log))
 
     # binary search for timestamp

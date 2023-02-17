@@ -56,6 +56,13 @@ class Entry(object):
             raise TypeError('invalid type')
         return self.compare_timestamp(other.timestamp)
 
+    def time_between(self, other, absolute=True):
+        if not isinstance(other, Entry):
+            raise TypeError('need to pass an entry here')
+
+        dist = self.timestamp - other.timestamp
+        return abs(dist) if absolute else dist
+
 
 
 class DisplayState(Entry):
@@ -74,7 +81,7 @@ class Voltage(Entry):
 
 class Current(Entry):
     def get_amps(self):
-        return float(self.data) / 1000000.0
+        return float(self.data) / -1000#1000000.0
 
 
 class WifiStrength(Entry):
