@@ -1,4 +1,5 @@
 from enum import Enum, auto
+from parser_args import ParserArgs
 
 
 class LogType(Enum):
@@ -11,7 +12,7 @@ class LogType(Enum):
     CELL_STR = 'cellular'
 
 
-def parse_line(line: str):
+def parse_line(line: str, args: ParserArgs):
     split = line.strip().split(sep=' ')
     logtype = split[1].lower()
     if logtype == LogType.DISPLAY_STATE.value:
@@ -23,7 +24,7 @@ def parse_line(line: str):
     elif logtype == LogType.WIFI_STR.value:
         return WifiStrength(split)
     elif logtype == LogType.CURRENT.value:
-        return Current(split)
+        return Current(split, args.current_divider)
     elif logtype == LogType.WIFI_ROAM.value:
         return WifiRoam(split)
     elif logtype == LogType.CELL_STR.value:
@@ -80,8 +81,12 @@ class Voltage(Entry):
 
 
 class Current(Entry):
+    def __init__(self, line, divider: float):
+        super().__init__(line)
+        self.divider = divider
+
     def get_amps(self):
-        return float(self.data) / -1000#1000000.0
+        return float(self.data) / self.divider#1000000.0
 
 
 class WifiStrength(Entry):

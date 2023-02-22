@@ -22,33 +22,29 @@ if __name__ == '__main__':
     args = ParserArgs('./config.ini')
     # parse environment samples
     environment_samples = EnvironmentLog(args.environment_log_file)
+    outputfun = print
+
+    if args.output_file:
+        outfile = open(args.output_file, 'w')
+
+        outputfun = lambda string: outfile.write(str(string) + '\n')
 
     # open report library using simpleperf log.
     perf_parser = PerfParser(environment_samples, args)
     perf_parser.get_data()
 
     functions = list(perf_parser.function_energies.values())
-    functions.sort(key=lambda fun_addr: (fun_addr.energy.local_energy, fun_addr.energy.accumulated_energy), reverse=False)
-
+    functions.sort(key=lambda fun_addr: (fun_addr.energy.local_energy, fun_addr.energy.accumulated_energy),
+                   reverse=True)
 
     for fun in functions:
         for name in fun.name_set:
             if 'land.erikblok' in name:
-                print(str(fun) + '\n')
+                outputfun(str(fun) + '\n')
                 continue
 
-   # for i in range(0, 20):
-    #    print(str(functions[i]) + '\n')
 
-    print(perf_parser.energy)
-    print(perf_parser.time)
-
-    pass
-
-    # log.print_logs(log.power_logs)
-    # filteredlogs = list(filter(lambda l: isinstance(l, Current), log.raw_logs))
-    # log.print_logs(filteredlogs)
-    # for i in range(1, len(log.power_logs)):
-    #   print(str(log.power_logs[i].time_between(log.power_logs[i-1])) + '  power: ' + str(log.power_logs[i].data))
+    outputfun(perf_parser.energy)
+    outputfun(perf_parser.time)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

@@ -18,3 +18,5 @@ class ParserArgs:
         self.source_dirs = config.get('source_dirs')
         self.trace_offcpu_mode = config.get('trace_offcpu_mode')
         self.source_dirs = config.get('source_dirs').split(';')
+        self.output_file = config.get('output_file')
+        self.current_divider = config.getfloat('current_divider', 1e9)

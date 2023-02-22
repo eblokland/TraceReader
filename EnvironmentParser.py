@@ -50,11 +50,11 @@ def bin_search(begin, end, timestamp, logs: list[Entry]):
 
 
 class EnvironmentLog(object):
-    def __init__(self, logfile):
+    def __init__(self, logfile, args: ParserArgs):
         if type(logfile) is str:
             logfile = open(logfile)
         lines = logfile.readlines()
-        logs = map(lambda line: parse_line(line), lines)
+        logs = map(lambda line: parse_line(line, args), lines)
         self.raw_logs = list(logs)
         lastvoltage = None
         lastcurrent = None
