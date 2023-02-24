@@ -21,7 +21,7 @@ def print_hi(name):
 if __name__ == '__main__':
     args = ParserArgs('./config.ini')
     # parse environment samples
-    environment_samples = EnvironmentLog(args.environment_log_file)
+    environment_samples = EnvironmentLog(args.environment_log_file, args)
     outputfun = print
 
     if args.output_file:
