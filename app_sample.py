@@ -8,6 +8,8 @@ class ThreadSample(object):
         self.symbol: Symbol = symbol
         self.trace: CallChain = trace
 
+    def __str__(self):
+        return str(self.symbol)
 
 class AppSample(object):
     def __init__(self, samples: List[ThreadSample]):

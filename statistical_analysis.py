@@ -27,6 +27,7 @@ class Function(object):
         self.local_energy_cost: float = 0 # Estimated energy cost to run this function once
         self.nonlocal_energy_cost : float = 0
         self.mean_local_power: float = 0
+        self.mean_nonlocal_power: float = 0
 
     def post_process(self, total_samples: int, total_runtime_seconds: float):
         self._set_prob(total_samples)
@@ -54,8 +55,8 @@ class Function(object):
         string = "Fun at " + str(self.addr) + " with names "
         for name in self.name_set:
             string += name + ' '
-        string += 'with local_energy_cost: ' + str(self.local_energy_cost) + ' and nonlocal energy cost ' + \
-                  str(self.nonlocal_energy_cost) + ' sample count ' + str(self.num_leaf_samples)
+        string += 'with local_energy_cost: ' + str(self.mean_local_power) + ' and nonlocal energy cost ' + \
+                  str(self.mean_nonlocal_power) + ' sample count ' + str(self.num_leaf_samples)
         return string
 
 

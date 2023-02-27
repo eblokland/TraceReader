@@ -20,10 +20,30 @@ class Symbol(object):
         self.len:int = symbol.symbol_len
         #ignore mapping for now
 
+    #we say that a symbol contains a given item if that item is contained in one of its names
+    # or if it's equal to one of its addresses.
+    # for now let's not match on substrings of addresses, that seems unnecessary
+    def __contains__(self, item):
+        return item in self.dso_name or item in self.symbol_name\
+               or item == self.symbol_addr or item == self.vaddr
+
+    def __str__(self):
+        return self.symbol_name
+
 class CallChainEntry(object):
     def __init__(self, entry: CallChainEntryStructure):
         self.ip: int = entry.ip
         self.symbol: Symbol = Symbol(entry.symbol)
+
+    def __contains__(self, item):
+        if item == self.ip:
+            return True
+
+        return item in self.symbol
+
+    def __str__(self):
+        return str(self.symbol)
+
 
 
 class CallChain(object):
@@ -31,6 +51,9 @@ class CallChain(object):
         self.entries: List[CallChainEntry] = []
         for i in range(0, chain.nr):
             self.entries.append(CallChainEntry(chain.entries[i]))
+
+    def __contains__(self, item):
+        return any(item in entry for entry in self.entries)
 
 
 class TimePeriod(object):
