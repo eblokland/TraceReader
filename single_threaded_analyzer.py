@@ -29,14 +29,20 @@ def _get_or_create_function(symbol: Symbol, fun_dict: Dict[Any, Function]) -> Fu
 # but it makes things a lot easier to write
 # manually inline this once i'm done
 def _analyze_callchain_entry(entry: CallChainEntry, fun_dict: Dict[Any, Function], child_fun: Function,
-                             time: TimePeriod, energy: EnergyPeriod, power: PowerPeriod) -> Function:
+                             time: TimePeriod, energy: EnergyPeriod, power: PowerPeriod, used_fun_set: set) -> Function:
     function = _get_or_create_function(entry.symbol, fun_dict)
     if child_fun not in function.children:
         function.children.add(child_fun)
-    function.num_samples += 1
-    function.energy += energy
-    function.power += power
-    function.time += time
+    # For now we ignore any recursive calls to a function.
+    # That means that if something appears in the callchain twice, we skip incrementing its sample count,
+    # energy, power, and time.  This way we don't double attribute things that make the numbers weird.
+    if function not in used_fun_set:
+        used_fun_set.add(function)
+        function.num_samples += 1
+        function.energy += energy
+        function.power += power
+        function.time += time
+
     return function
 
 
@@ -57,7 +63,7 @@ def _analyze_state(app_state: AppState, total_time: int, function_dict: Dict[int
     # as well as increment its sample counter
     function.time += TimePeriod(local_time=sample_runtime, accumulated_time=sample_runtime)
     function.energy += EnergyPeriod(local_energy=sample_energy, accumulated_energy=sample_energy)
-    function.power += PowerPeriod(local_power=sample_power, nonlocal_power=sample_power)
+    function.power += PowerPeriod(local_power=sample_power, nonlocal_power=0)
     function.num_leaf_samples += 1
 
     # energy/time to be used for entries in the callchain
@@ -69,9 +75,10 @@ def _analyze_state(app_state: AppState, total_time: int, function_dict: Dict[int
     # non-local energy and runtime
     callchain = sample.trace
     child_fun = function
+    used_function_set = set()
     for entry in callchain.entries:
         child_fun = _analyze_callchain_entry(entry, function_dict, child_fun, non_local_time,
-                                             non_local_energy, non_local_power)
+                                             non_local_energy, non_local_power, used_function_set)
 
     return total_time
 

@@ -37,7 +37,9 @@ class PerfDataParser(object):
     def _convert_to_states(self) -> List[AppState]:
         states: List[AppState] = []
         lib = self._create_report_lib()
+        count = 0
         while lib.GetNextSample() is not None:
+            count += 1
             samp = lib.GetCurrentSample()
             #TODO: make the period real instead of the fake period that i'm given
             period = samp.period
@@ -52,6 +54,7 @@ class PerfDataParser(object):
 
             states.append(new_state)
 
+        print(count)
         return states
 
 

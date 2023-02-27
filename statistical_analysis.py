@@ -42,14 +42,18 @@ class Function(object):
         self.mean_nonlocal_power: float = 0
 
         # prob intervals
-        self.local_prob_interval: ProbInterval = ProbInterval()
-        self.nonlocal_prob_interval: ProbInterval = ProbInterval()
+
+        self.local_prob_interval: ProbInterval = None
+        self.nonlocal_prob_interval: ProbInterval = None
+        self.mean_local_power_interval: ProbInterval = None
+        self.mean_nonlocal_power_interval: ProbInterval = None
 
     def post_process(self, total_samples: int, total_runtime_seconds: float):
         self._set_prob(total_samples)
         self._set_runtime(total_runtime_seconds)
         self._set_power()
         self._prob_interval(n=total_samples, alpha=0.05)
+        self._power_interval(alpha=0.05)
 
     def _set_prob(self, n):
         self.local_prob = self.num_leaf_samples / n
@@ -77,14 +81,47 @@ class Function(object):
             if n * p_bbm < 5 or n * (1 - p_bbm) < 5:
                 return ProbInterval()
 
-            upper = p_bbm + percentile * math.sqrt((1 / n) * p_bbm * (1 - p_bbm))
-            lower = p_bbm - percentile * math.sqrt((1 / n) * p_bbm * (1 - p_bbm))
+            half_interval = percentile * math.sqrt((1 / n) * p_bbm * (1 - p_bbm))
+            upper = p_bbm + half_interval
+            lower = p_bbm - half_interval
             return ProbInterval(lower=lower, upper=upper)
 
         self.local_prob_interval = do_prob(self.local_prob)
         self.nonlocal_prob_interval = do_prob(self.nonlocal_prob)
 
-    #def _power_interval(self, ):
+    def _power_interval(self, alpha):
+        percentile = norm.ppf(1 - (alpha / 2))
+
+        def s(pow_hat, pow_list):
+            n_bbm = len(pow_list)
+            pow_sum = 0.0
+            for p in pow_list:
+                pow_sum += (p - pow_hat) ** 2
+
+            return math.sqrt(
+                (1 / (n_bbm - 1)) * pow_sum
+            )
+
+        def intervals(pow_hat, pow_list) -> ProbInterval:
+
+            n_bbm = len(pow_list)
+            if n_bbm < 2:
+                return ProbInterval()
+            sqrt_n_bbm = math.sqrt(n_bbm)
+            half_interval = percentile * (s(pow_hat, pow_list) / sqrt_n_bbm)
+            upper = pow_hat + half_interval
+            lower = pow_hat - half_interval
+
+            return ProbInterval(lower=lower, upper=upper)
+
+        #just double check this...
+        assert self.num_leaf_samples == len(self.power.local_power_list),\
+               str(self.num_leaf_samples) + ' is not ' + str(len(self.power.local_power_list))
+        assert self.num_samples == len(self.power.nonlocal_power_list), \
+               str(self.num_samples) + ' is not ' + str(len(self.power.nonlocal_power_list))
+
+        self.mean_local_power_interval = intervals(self.mean_local_power, self.power.local_power_list)
+        self.mean_nonlocal_power_interval = intervals(self.mean_nonlocal_power, self.power.nonlocal_power_list)
 
     def __str__(self):
         string = "Fun at " + str(self.addr) + " with names "
