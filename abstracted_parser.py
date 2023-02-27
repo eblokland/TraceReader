@@ -11,7 +11,7 @@ if __name__ == "__main__":
     states = perf_parser.parse()
     analyzer = SingleThreadedAnalyzer(states)
     analyzer.perform_analysis()
-    funs = analyzer.get_sorted_fun_list(lambda f: f.mean_power, True)
+    funs = analyzer.get_sorted_fun_list(lambda f: (f.local_energy_cost), True)
 
     outputfun = print
 

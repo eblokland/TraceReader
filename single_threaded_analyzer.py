@@ -91,11 +91,12 @@ class SingleThreadedAnalyzer(StatisticalAnalyzer):
         # now we created a full list of functions!  very cool.
         # phat(bbm) = n(bbm) / n === estimated prob of bbm (or function)
         # is equal to number of function samples over total number of samples
+
         total_samples = len(self._state_list)
         for fun in self.function_dict.values():
-            fun.post_process(total_samples, total_time)
+            fun.post_process(total_samples, total_time / 1e9)
 
-    def get_sorted_fun_list(self, key: Callable[[Function], Any] = lambda fun: fun.energy_cost, reverse=False):
+    def get_sorted_fun_list(self, key: Callable[[Function], Any] = lambda fun: fun.local_energy_cost, reverse=False):
         fun_list = list(self.function_dict.values())
         fun_list.sort(key=key, reverse=reverse)
         return fun_list
