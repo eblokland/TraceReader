@@ -3,6 +3,11 @@ from parser_args import ParserArgs
 from perf_data_parser import PerfDataParser
 from single_threaded_analyzer import SingleThreadedAnalyzer
 from function_csv_writer import write_csv
+import pickle
+import gzip
+
+
+
 
 if __name__ == "__main__":
     args = ParserArgs('./config.ini')
@@ -13,9 +18,13 @@ if __name__ == "__main__":
     analyzer = SingleThreadedAnalyzer(states)
     analyzer.perform_analysis()
     funs = analyzer.get_sorted_fun_list(lambda f: (f.local_energy_cost), True)
-    pass
-    if args.output_file:
-        write_csv(args.output_file, funs)
-    else:
-        for fun in funs:
-            print(str(fun) + '\n')
+    if args.pickle_functions:
+        pickle_file_name = args.output_dir + args.shared_filename + '.pickle.gz'
+        with gzip.open(pickle_file_name, 'wb') as pickle_file:
+            #pickle the dict so we keep the mapping to the function
+            pickle.dump(analyzer.function_dict, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
+    if args.output_csv:
+        write_csv(args.output_dir + args.shared_filename + '.csv', funs)
+    #else:
+     #   for fun in funs:
+      #      print(str(fun) + '\n')

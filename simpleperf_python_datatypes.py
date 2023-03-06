@@ -104,12 +104,16 @@ class EnergyPeriod(object):
     def __init__(self, local_energy=0.0, accumulated_energy=0.0):
         self.local_energy = local_energy
         self.accumulated_energy = accumulated_energy
+        self.local_energy_list = [local_energy] if local_energy > 0 else []
+        self.accumulated_energy_list = [accumulated_energy] if accumulated_energy > 0 else []
 
     def __iadd__(self, other):
         if not isinstance(other, EnergyPeriod):
             raise TypeError('Object provided is not an EnergyPeriod')
         self.local_energy += other.local_energy
         self.accumulated_energy += other.accumulated_energy
+        self.local_energy_list += other.accumulated_energy_list
+        self.accumulated_energy_list += other.accumulated_energy_list
         return self
 
     def __str__(self):

@@ -2,7 +2,8 @@ from typing import Any, Dict, List, Callable
 
 from app_sample import AppState
 from simpleperf_python_datatypes import TimePeriod, EnergyPeriod, CallChainEntry, Symbol, PowerPeriod
-from statistical_analysis import StatisticalAnalyzer, Function
+from statistical_analysis import StatisticalAnalyzer
+from Function import Function
 
 """
 Searches for a function with the given symbol's address in the function dict.
