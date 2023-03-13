@@ -1,8 +1,8 @@
-from EnvironmentParser import EnvironmentLog
-from parser_args import ParserArgs
-from perf_data_parser import PerfDataParser
-from single_threaded_analyzer import SingleThreadedAnalyzer
-from function_csv_writer import write_csv
+from parsers.environment_parser.EnvironmentParser import EnvironmentLog
+from parsers.parser_args import ParserArgs
+from parsers.perf_parser.perf_data_parser import PerfDataParser
+from Analysis.single_threaded_analyzer import SingleThreadedAnalyzer
+from Analysis.function.function_csv_writer import write_csv
 import pickle
 import gzip
 

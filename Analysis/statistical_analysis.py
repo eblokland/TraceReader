@@ -1,13 +1,9 @@
-import math
 from abc import ABC, abstractmethod
-from collections.abc import MutableSet
-from typing import List, Dict, Any, Set
-from scipy.stats import norm
-from app_sample import AppState
-from simpleperf_python_datatypes import EnergyPeriod, TimePeriod, PowerPeriod
+from typing import List
+from trace_representation.app_sample import AppState
 
 
-
+# Abstract class for a statistical analyzer, that will take a list of program states and *do something* with them.
 class StatisticalAnalyzer(ABC):
     def __init__(self, state_list: List[AppState]):
         self._state_list = state_list

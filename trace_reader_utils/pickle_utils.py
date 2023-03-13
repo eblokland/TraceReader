@@ -1,7 +1,7 @@
 import pickle
 import gzip
 
-from parser_args import ParserArgs
+from parsers.parser_args import ParserArgs
 
 
 def gzip_pickle(obj, args: ParserArgs = None, output_file=None):

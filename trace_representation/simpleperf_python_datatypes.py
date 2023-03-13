@@ -6,6 +6,15 @@ from simpleperf_report_lib import CallChainStructure, CallChainEntryStructure, S
 
 
 class Symbol(object):
+    """
+    Symbol associated with one (TODO: or more) callchain entr(y)(ies)
+    contains:
+    dso_name: the name of the file the symbol is found in
+    vaddr: the address of the surrounding function's beginning in the file
+    symbol_name: the name of the symbol
+    symbol_addr: address of the symbol itself
+    len: the length of the function in the file.
+    """
     def __init__(self, symbol: SymbolStruct):
         try:
             self.dso_name: str = symbol.dso_name
@@ -31,6 +40,10 @@ class Symbol(object):
         return self.symbol_name
 
 class CallChainEntry(object):
+    """
+    Contains a single entry in a callchain, consisting of an instruction pointer address and
+    a 'Symbol'
+    """
     def __init__(self, entry: CallChainEntryStructure):
         self.ip: int = entry.ip
         self.symbol: Symbol = Symbol(entry.symbol)
@@ -47,6 +60,9 @@ class CallChainEntry(object):
 
 
 class CallChain(object):
+    """
+    Contains a list of CallChainEntries associated with this CallChain
+    """
     def __init__(self, chain : CallChainStructure):
         self.entries: List[CallChainEntry] = []
         for i in range(0, chain.nr):
@@ -57,7 +73,14 @@ class CallChain(object):
 
 
 class TimePeriod(object):
+    """
+    Class that represents the amount of execution time used locally and non-locally by a function
+    """
     def __init__(self, local_time=0.0, accumulated_time=0.0):
+        """
+        :param local_time: Local execution time
+        :param accumulated_time: non-local execution time
+        """
         self.local_time = local_time
         self.accumulated_time = accumulated_time
 
@@ -71,12 +94,17 @@ class TimePeriod(object):
     def __str__(self) -> str:
         return 'local time: ' + str(self.local_time) + ' acc time: ' + str(self.accumulated_time)
 
+
 class PowerPeriod(object):
     """
     Accumulates the power used by samples of a function.  not useful without knowing the amount of time it ran for.
     """
 
     def __init__(self, local_power=0.0, nonlocal_power=0.0):
+        """
+        :param local_power:  power used by this function in *local* code
+        :param nonlocal_power: power used by this function in *non-local* code
+        """
         self.local_power = local_power
         self.nonlocal_power = nonlocal_power
         # if local_power is 0, then this wasn't a local sample.
@@ -97,11 +125,12 @@ class PowerPeriod(object):
 class EnergyPeriod(object):
     """
     Based on Period from annotate.py, keeps track of energy use instead of event count.
-    local_energy = energy used specifically by this thing (line, fun, file)
-    accumulated_energy = energy used by this thing AND any functions it calls (enzo enzo)
     """
-
     def __init__(self, local_energy=0.0, accumulated_energy=0.0):
+        """
+        :param local_energy: energy used specifically by this thing (line, fun, file)
+        :param accumulated_energy:  energy used by this thing AND any functions it calls (and their calls etc.)
+        """
         self.local_energy = local_energy
         self.accumulated_energy = accumulated_energy
         self.local_energy_list = [local_energy] if local_energy > 0 else []

@@ -1,6 +1,6 @@
 import csv
 from typing import List, Any
-from Function import Function
+from Analysis.function.Function import Function
 
 csv_header = ['function address', 'name set', 'leaf samples', 'tree samples', 'local probability',
               'nonlocal probability', 'local prob interval', 'nonlocal prob interval', 'local runtime',

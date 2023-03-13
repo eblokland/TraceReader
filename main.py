@@ -2,14 +2,10 @@
 
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
-import types
 
-from EnvironmentParser import EnvironmentLog
+from parsers.environment_parser.EnvironmentParser import EnvironmentLog
 from PerfParser import PerfParser
-from entry import *
-from configparser import ConfigParser
-from simpleperf_report_lib import ReportLib
-from parser_args import ParserArgs
+from parsers.parser_args import ParserArgs
 
 
 def print_hi(name):

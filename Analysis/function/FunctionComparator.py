@@ -1,9 +1,9 @@
-from typing import List, Dict, Any
+from typing import List, Dict
 import csv
 from scipy.stats import wilcoxon, ttest_ind
-from Function import Function
+from Analysis.function.Function import Function
 import sys
-from pickle_utils import gzip_unpickle
+from trace_reader_utils.pickle_utils import gzip_unpickle
 
 csv_header = ['name set', 'p-value local', 'p-value nonlocal', 'local-diff', 'nonlocal-diff']
 

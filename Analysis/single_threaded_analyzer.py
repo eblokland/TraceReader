@@ -1,18 +1,21 @@
 from typing import Any, Dict, List, Callable
 
-from app_sample import AppState
-from simpleperf_python_datatypes import TimePeriod, EnergyPeriod, CallChainEntry, Symbol, PowerPeriod
+from trace_representation.app_sample import AppState
+from trace_representation.simpleperf_python_datatypes import TimePeriod, EnergyPeriod, CallChainEntry, Symbol, \
+    PowerPeriod
 from statistical_analysis import StatisticalAnalyzer
-from Function import Function
-
-"""
-Searches for a function with the given symbol's address in the function dict.
-If it is not found, create a new one with the given symbol.
-If it is found, ensure that the symbol's name is in the function's name set, then return it.
-"""
+from Analysis.function.Function import Function
 
 
 def _get_or_create_function(symbol: Symbol, fun_dict: Dict[Any, Function]) -> Function:
+    """
+    Searches for a function with the given symbol's address in the function dict.
+    If it is not found, create a new one with the given symbol.
+    If it is found, ensure that the symbol's name is in the function's name set, then return it.
+    :param symbol: Symbol to search for
+    :param fun_dict: Dictionary to search in
+    :return: Function object associated with this symbol
+    """
     addr = symbol.symbol_addr
     name = symbol.symbol_name
     if addr in fun_dict:
@@ -26,11 +29,19 @@ def _get_or_create_function(symbol: Symbol, fun_dict: Dict[Any, Function]) -> Fu
     return func
 
 
-# this causes a lot of overhead because python is terrible at functions
-# but it makes things a lot easier to write
-# manually inline this once i'm done
 def _analyze_callchain_entry(entry: CallChainEntry, fun_dict: Dict[Any, Function], child_fun: Function,
                              time: TimePeriod, energy: EnergyPeriod, power: PowerPeriod, used_fun_set: set) -> Function:
+    """
+    Analyzes one callchain from one program state
+    :param entry: CallChainEntry to analyze
+    :param fun_dict: Dictionary of functions we've seen so far
+    :param child_fun: Function that appears above this one in the callchain (this function's child)
+    :param time: Time period associated with this program state
+    :param energy: Energy period associated with this program state
+    :param power: Power period associated with this program state
+    :param used_fun_set: Functions we've seen *in this callchain* so far
+    :return:
+    """
     function = _get_or_create_function(entry.symbol, fun_dict)
     if child_fun not in function.children:
         function.children.add(child_fun)
@@ -48,6 +59,13 @@ def _analyze_callchain_entry(entry: CallChainEntry, fun_dict: Dict[Any, Function
 
 
 def _analyze_state(app_state: AppState, total_time: int, function_dict: Dict[int, Function]) -> int:
+    """
+     "Static" function that analyzes one single program state snapshot.
+    :param app_state: AppState to analyze
+    :param total_time: total time that has elapsed up until this sample.
+    :param function_dict: Dictionary of functions we've seen so far
+    :return: The new total_time, including this state.
+    """
     # get the first sample in the app_state - we aren't going to try multiple threads in this
     sample = app_state.sample.get_first_sample()
     # increment the total time by the period of the app state
@@ -85,6 +103,11 @@ def _analyze_state(app_state: AppState, total_time: int, function_dict: Dict[int
 
 
 class SingleThreadedAnalyzer(StatisticalAnalyzer):
+    """
+    Class that will analyze a list of AppStates that, together, make up a program trace.
+    This class makes a very simplifying assumption that the whole program is one thread,
+    that may or may not be actively scheduled.
+    """
     def __init__(self, state_list: List[AppState]):
         super().__init__(state_list)
         self.function_dict: Dict[int, Function] = {}
@@ -105,6 +128,12 @@ class SingleThreadedAnalyzer(StatisticalAnalyzer):
             fun.post_process(total_samples, total_time / 1e9)
 
     def get_sorted_fun_list(self, key: Callable[[Function], Any] = lambda fun: fun.local_energy_cost, reverse=False):
+        """
+        Returns a sorted list of all functions in the function dictionary
+        :param key: Key to sort the list by
+        :param reverse: Should the list be reversed
+        :return: Sorted list
+        """
         fun_list = list(self.function_dict.values())
         fun_list.sort(key=key, reverse=reverse)
         return fun_list

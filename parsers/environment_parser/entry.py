@@ -1,5 +1,5 @@
-from enum import Enum, auto
-from parser_args import ParserArgs
+from enum import Enum
+from parsers.parser_args import ParserArgs
 
 
 class LogType(Enum):

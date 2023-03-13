@@ -1,23 +1,30 @@
-from typing import Dict, List
+from typing import List
 
-from simpleperf_report_lib import ReportLib, SampleStruct
+from simpleperf_report_lib import ReportLib
 
-from app_sample import AppState, AppSample, EnvironmentState, ThreadSample
-from parser_args import ParserArgs
-from EnvironmentParser import EnvironmentLog
-from PerfParser import FunctionAddr
-from simpleperf_python_datatypes import CallChain, Symbol
+from trace_representation.app_sample import AppState, AppSample, EnvironmentState, ThreadSample
+from parsers.parser_args import ParserArgs
+from parsers.environment_parser.EnvironmentParser import EnvironmentLog
+from trace_representation.simpleperf_python_datatypes import CallChain, Symbol
 
 
 def _get_energy_cost_of_sample(environment_log: EnvironmentLog, timestamp, period) -> (float, float):
     cur_power = environment_log.get_power_for_time(timestamp)
     power = environment_log.get_power_for_time(timestamp)
-    energy_used = power * period / 1e9
+    energy_used = power * period / 1e9  # assumes that period is in nanoseconds
     return energy_used, cur_power
 
 
 class PerfDataParser(object):
+    """
+    Class that parses a perf.data file into an intermediate representation.
+    """
+
     def __init__(self, environment_log: EnvironmentLog, args: ParserArgs):
+        """
+        :param environment_log: EnvironmentLog produced by EnvironmentParser
+        :param args: ParserArgs object
+        """
         self.environment_log = environment_log
         self.args = args
         self.states: List[AppState] = []
@@ -35,15 +42,21 @@ class PerfDataParser(object):
         return sp_report
 
     def _convert_to_states(self) -> List[AppState]:
+        """
+        Steps through the reportLib and creates a list of AppState objects.
+        Currently only capable of using on-cpu samples, will break with off-cpu samples
+        :return:
+        """
         states: List[AppState] = []
         lib = self._create_report_lib()
         count = 0
+        # loop steps through the samples one by one, converting them to AppStates
+        # currently, only on-cpu samples are supported!
         while lib.GetNextSample() is not None:
             count += 1
             samp = lib.GetCurrentSample()
-            #TODO: make the period real instead of the fake period that i'm given
             period = samp.period
-            timestamp = samp.time / 1e6 #simpleperf reports in nanoseconds, my tool in milliseconds
+            timestamp = samp.time / 1e6  # simpleperf reports in nanoseconds, my tool in milliseconds
             energy_cost, power = _get_energy_cost_of_sample(self.environment_log, timestamp, period)
 
             thread_sample = ThreadSample(Symbol(lib.GetSymbolOfCurrentSample()),
@@ -56,6 +69,3 @@ class PerfDataParser(object):
 
         print(count)
         return states
-
-
-

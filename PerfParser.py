@@ -1,14 +1,13 @@
 from collections.abc import MutableSet
 from typing import Dict
 
-from simpleperf_report_lib import ReportLib, SampleStruct
-from EnvironmentParser import EnvironmentLog
+from simpleperf_report_lib import ReportLib
+from parsers.environment_parser.EnvironmentParser import EnvironmentLog
 from annotate import Addr2Line
-from configparser import ConfigParser
-from parser_args import ParserArgs
+from parsers.parser_args import ParserArgs
 from simpleperf_report_lib import SymbolStruct
 
-from simpleperf_python_datatypes import EnergyPeriod, TimePeriod
+from trace_representation.simpleperf_python_datatypes import EnergyPeriod, TimePeriod
 
 
 class FunctionAddr(object):
@@ -95,8 +94,9 @@ class PerfParser(object):
         # make sure that we don't add to the same file/function/line twice, because this sample only happened once and thus shouldn't be double counted!
         # ex. if there are two functions from the same file in the callchain, we add to each function but only once to the file.
         for i, symbol in enumerate(symbols):
-            """on the second symbol (if it exists), we don't want to increase the local_energy part of the energy period.
-                replace the period with a new one that has no local_energy
+            """
+            on the second symbol (if it exists), we don't want to increase the local_energy part of the energy period.
+            replace the period with a new one that has no local_energy
             """
             if i == 1:
                 energy = EnergyPeriod(0, sample_energy)
