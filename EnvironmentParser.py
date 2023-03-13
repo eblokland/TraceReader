@@ -61,19 +61,19 @@ class EnvironmentLog(object):
 
         def lam(log):
             nonlocal lastvoltage, lastcurrent
-            if type(log) is Voltage:
-                if lastvoltage is not None and log.timestamp < lastvoltage.timestamp:
+            if isinstance(log, Voltage):
+                if isinstance(lastvoltage, Voltage) and log.timestamp < lastvoltage.timestamp:
                     raise AssertionError('out of order processing of logs, not good')
                 lastvoltage = log
-                if lastcurrent is not None:
+                if isinstance(lastcurrent, Current):
                     return Power(lastvoltage, lastcurrent)
                 else:
                     return None
-            elif type(log) is Current:
-                if lastcurrent is not None and log.timestamp < lastcurrent.timestamp:
+            elif isinstance(log, Current):
+                if isinstance(lastcurrent, Current) and log.timestamp < lastcurrent.timestamp:
                     raise AssertionError('out of order processing of logs')
                 lastcurrent = log
-                if lastvoltage is not None:
+                if isinstance(lastvoltage, Voltage):
                     return Power(lastvoltage, lastcurrent)
                 else:
                     return None
