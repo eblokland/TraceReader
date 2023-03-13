@@ -115,9 +115,9 @@ class Function(object):
 
         #just double check this...
         assert self.num_leaf_samples == len(self.power.local_power_list),\
-               str(self.num_leaf_samples) + ' is not ' + str(len(self.power.local_power_list))
+               str(self.num_leaf_samples) + ' is not ' + str(len(self.power.local_power_list)) + ' did you set the current multiplier correctly?'
         assert self.num_samples == len(self.power.nonlocal_power_list), \
-               str(self.num_samples) + ' is not ' + str(len(self.power.nonlocal_power_list))
+               str(self.num_samples) + ' is not ' + str(len(self.power.nonlocal_power_list)) + ' did you set the current multiplier correctly?'
 
         self.mean_local_power_interval = intervals(self.mean_local_power, self.power.local_power_list)
         self.mean_nonlocal_power_interval = intervals(self.mean_nonlocal_power, self.power.nonlocal_power_list)
