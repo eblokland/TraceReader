@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Callable
 
-from Analysis.function.Function import Function
-from Analysis.statistical_analysis import StatisticalAnalyzer
+from analysis.function.function import Function
+from analysis.statistical_analysis import StatisticalAnalyzer
 from trace_representation.app_sample import AppState
 from trace_representation.simpleperf_python_datatypes import TimePeriod, EnergyPeriod, CallChainEntry, Symbol, \
     PowerPeriod

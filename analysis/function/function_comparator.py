@@ -1,7 +1,7 @@
 from typing import List, Dict
 import csv
 from scipy.stats import wilcoxon, ttest_ind
-from Analysis.function.Function import Function
+from analysis.function.function import Function
 import sys
 from trace_reader_utils.pickle_utils import gzip_unpickle
 
@@ -105,7 +105,7 @@ def compare_dict(x: Dict[int, Function], y: Dict[int, Function]) -> List[Functio
 if __name__ == "__main__":
     numargs = len(sys.argv)
     if numargs != 4:
-        print('Syntax: python FunctionComparator.py pickle1 pickle2 outfile')
+        print('Syntax: python function_comparator.py pickle1 pickle2 outfile')
         sys.exit(0)
     trace_1 = gzip_unpickle(str(sys.argv[1]))
     trace_2 = gzip_unpickle(str(sys.argv[2]))

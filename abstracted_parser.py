@@ -1,7 +1,7 @@
 from parsers.parse_to_abstract import parse_to_abstract
 from parsers.parser_args import ParserArgs
-from Analysis.single_threaded_analyzer import SingleThreadedAnalyzer
-from Analysis.function.function_csv_writer import write_csv
+from analysis.single_threaded_analyzer import SingleThreadedAnalyzer
+from analysis.function.function_csv_writer import write_csv
 import pickle
 import gzip
 
