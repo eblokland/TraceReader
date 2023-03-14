@@ -2,10 +2,10 @@ from typing import List
 
 from simpleperf_report_lib import ReportLib
 
-from trace_representation.app_sample import AppState, AppSample, EnvironmentState, ThreadSample
 from parsers.parser_args import ParserArgs
-from parsers.environment_parser.EnvironmentParser import EnvironmentLog
+from trace_representation.app_sample import AppState, AppSample, EnvironmentState, ThreadSample
 from trace_representation.simpleperf_python_datatypes import CallChain, Symbol
+from trace_representation.time_unit import TimeUnit
 
 
 class PerfDataParser(object):
@@ -46,9 +46,14 @@ class PerfDataParser(object):
         while lib.GetNextSample() is not None:
             count += 1
             samp = lib.GetCurrentSample()
-            period = samp.period
-            timestamp = samp.time / 1e6  # simpleperf reports in nanoseconds, my tool in milliseconds
-            #energy_cost, power = _get_energy_cost_of_sample(self.environment_log, timestamp, period)
+            ev = lib.GetEventOfCurrentSample()
+            if 'task-clock' not in ev.name and 'cpu-clock' not in ev.name:
+                print(f'Unsupported event {ev.name}, skipping')
+                continue
+
+            period = TimeUnit(nanos=samp.period)
+            timestamp = TimeUnit(nanos=samp.time)  # simpleperf reports in nanoseconds, my tool in milliseconds
+            # energy_cost, power = _get_energy_cost_of_sample(self.environment_log, timestamp, period)
 
             thread_sample = ThreadSample(Symbol(lib.GetSymbolOfCurrentSample()),
                                          CallChain(lib.GetCallChainOfCurrentSample()))

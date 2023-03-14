@@ -1,8 +1,10 @@
-#python versions of simpleperf data structures.
-#yes, this is very memory inefficient.  just download more ram
+# python versions of simpleperf data structures.
+# yes, this is very memory inefficient.  just download more ram
 from typing import List
 
 from simpleperf_report_lib import CallChainStructure, CallChainEntryStructure, SymbolStruct
+
+from trace_representation.time_unit import TimeUnit
 
 
 class Symbol(object):
@@ -15,6 +17,7 @@ class Symbol(object):
     symbol_addr: address of the symbol itself
     len: the length of the function in the file.
     """
+
     def __init__(self, symbol: SymbolStruct):
         try:
             self.dso_name: str = symbol.dso_name
@@ -26,24 +29,26 @@ class Symbol(object):
         except UnicodeDecodeError:
             self.symbol_name: str = 'symbol_decode_failed'
         self.symbol_addr: int = symbol.symbol_addr
-        self.len:int = symbol.symbol_len
-        #ignore mapping for now
+        self.len: int = symbol.symbol_len
+        # ignore mapping for now
 
-    #we say that a symbol contains a given item if that item is contained in one of its names
+    # we say that a symbol contains a given item if that item is contained in one of its names
     # or if it's equal to one of its addresses.
     # for now let's not match on substrings of addresses, that seems unnecessary
     def __contains__(self, item):
-        return item in self.dso_name or item in self.symbol_name\
+        return item in self.dso_name or item in self.symbol_name \
                or item == self.symbol_addr or item == self.vaddr
 
     def __str__(self):
         return self.symbol_name
+
 
 class CallChainEntry(object):
     """
     Contains a single entry in a callchain, consisting of an instruction pointer address and
     a 'Symbol'
     """
+
     def __init__(self, entry: CallChainEntryStructure):
         self.ip: int = entry.ip
         self.symbol: Symbol = Symbol(entry.symbol)
@@ -58,12 +63,12 @@ class CallChainEntry(object):
         return str(self.symbol)
 
 
-
 class CallChain(object):
     """
     Contains a list of CallChainEntries associated with this CallChain
     """
-    def __init__(self, chain : CallChainStructure):
+
+    def __init__(self, chain: CallChainStructure):
         self.entries: List[CallChainEntry] = []
         for i in range(0, chain.nr):
             self.entries.append(CallChainEntry(chain.entries[i]))
@@ -76,7 +81,8 @@ class TimePeriod(object):
     """
     Class that represents the amount of execution time used locally and non-locally by a function
     """
-    def __init__(self, local_time=0.0, accumulated_time=0.0):
+
+    def __init__(self, local_time: TimeUnit = TimeUnit(), accumulated_time: TimeUnit = TimeUnit()):
         """
         :param local_time: Local execution time
         :param accumulated_time: non-local execution time
@@ -86,7 +92,7 @@ class TimePeriod(object):
 
     def __iadd__(self, other):
         if not isinstance(other, TimePeriod):
-            raise TypeError('Object provided is not an EnergyPeriod')
+            raise TypeError('Object provided is not a TimePeriod')
         self.local_time += other.local_time
         self.accumulated_time += other.accumulated_time
         return self
@@ -126,6 +132,7 @@ class EnergyPeriod(object):
     """
     Based on Period from annotate.py, keeps track of energy use instead of event count.
     """
+
     def __init__(self, local_energy=0.0, accumulated_energy=0.0):
         """
         :param local_energy: energy used specifically by this thing (line, fun, file)

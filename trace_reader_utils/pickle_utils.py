@@ -1,5 +1,5 @@
-import pickle
 import gzip
+import pickle
 
 from parsers.parser_args import ParserArgs
 
@@ -12,7 +12,8 @@ def gzip_pickle(obj, args: ParserArgs = None, output_file=None):
     with gzip.open(output_file, 'wb') as pickle_file:
         pickle.dump(obj, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
 
-#will use the file extension to determine whether to use gzip or regular pickle
+
+# will use the file extension to determine whether to use gzip or regular pickle
 def gzip_unpickle(input_file: str):
     if input_file.endswith('.gz'):
         with gzip.open(input_file, 'rb') as pickle_file:

@@ -1,5 +1,5 @@
 import math
-from typing import Set, MutableSet
+from typing import Set, MutableSet, Union
 
 from scipy.stats import norm
 
@@ -34,7 +34,8 @@ class Function(object):
         self.local_prob: float = 0  # Probability of this function being sampled (corresponds to pbbm in formula)
         self.nonlocal_prob: float = 0  # Probability of this function being found in a callchain
         self.local_runtime: float = 0  # Estimated TOTAL runtime of this function (corresponds to tbbm)
-        self.nonlocal_runtime: float = 0  # Estimated time that a function (or its children) called by this function will run in total
+        self.nonlocal_runtime: float = 0  # Estimated time that a function (or its children)
+        # called by this function will run in total
         self.local_energy_cost: float = 0  # Estimated energy cost to run this function once
         self.nonlocal_energy_cost: float = 0
         self.mean_local_power: float = 0
@@ -42,10 +43,10 @@ class Function(object):
 
         # prob intervals
 
-        self.local_prob_interval: ProbInterval = None
-        self.nonlocal_prob_interval: ProbInterval = None
-        self.mean_local_power_interval: ProbInterval = None
-        self.mean_nonlocal_power_interval: ProbInterval = None
+        self.local_prob_interval: Union[ProbInterval, None] = None
+        self.nonlocal_prob_interval: Union[ProbInterval, None] = None
+        self.mean_local_power_interval: Union[ProbInterval, None] = None
+        self.mean_nonlocal_power_interval: Union[ProbInterval, None] = None
 
     def post_process(self, total_samples: int, total_runtime_seconds: float):
         """
@@ -98,6 +99,7 @@ class Function(object):
         :return:
         """
         percentile = norm.ppf(1 - (alpha / 2))
+
         def do_prob(p_bbm: float) -> ProbInterval:
             # sanity check from section C
             # p_bbm must not be too close to 1 or 0
@@ -141,11 +143,13 @@ class Function(object):
 
             return ProbInterval(lower=lower, upper=upper)
 
-        #just double check this...
-        assert self.num_leaf_samples == len(self.power.local_power_list),\
-               str(self.num_leaf_samples) + ' is not ' + str(len(self.power.local_power_list)) + ' did you set the current multiplier correctly?'
+        # just double check this...
+        assert self.num_leaf_samples == len(self.power.local_power_list), \
+            str(self.num_leaf_samples) + ' is not ' + str(
+                len(self.power.local_power_list)) + ' did you set the current multiplier correctly?'
         assert self.num_samples == len(self.power.nonlocal_power_list), \
-               str(self.num_samples) + ' is not ' + str(len(self.power.nonlocal_power_list)) + ' did you set the current multiplier correctly?'
+            str(self.num_samples) + ' is not ' + str(
+                len(self.power.nonlocal_power_list)) + ' did you set the current multiplier correctly?'
 
         self.mean_local_power_interval = intervals(self.mean_local_power, self.power.local_power_list)
         self.mean_nonlocal_power_interval = intervals(self.mean_nonlocal_power, self.power.nonlocal_power_list)

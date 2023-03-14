@@ -1,10 +1,11 @@
 from typing import Any, Dict, List, Callable
 
+from Analysis.function.Function import Function
+from Analysis.statistical_analysis import StatisticalAnalyzer
 from trace_representation.app_sample import AppState
 from trace_representation.simpleperf_python_datatypes import TimePeriod, EnergyPeriod, CallChainEntry, Symbol, \
     PowerPeriod
-from Analysis.statistical_analysis import StatisticalAnalyzer
-from Analysis.function.Function import Function
+from trace_representation.time_unit import TimeUnit
 
 
 def _get_or_create_function(symbol: Symbol, fun_dict: Dict[Any, Function]) -> Function:
@@ -70,7 +71,7 @@ def _analyze_state(app_state: AppState, total_time: int, function_dict: Dict[int
     sample = app_state.sample.get_first_sample()
     # increment the total time by the period of the app state
     sample_runtime = app_state.period
-    total_time += sample_runtime
+    total_time += sample_runtime.to_nanos()
 
     sample_energy = app_state.energy_consumed
     sample_power = app_state.power
@@ -78,15 +79,15 @@ def _analyze_state(app_state: AppState, total_time: int, function_dict: Dict[int
     # retrieve or create the function we're using
     function = _get_or_create_function(sample.symbol, function_dict)
 
-    # function is the actual funct being executed at the time that this was running, attribute its local energy and time now
-    # as well as increment its sample counter
+    # function is the actual funct being executed at the time that this was running,
+    # attribute its local energy and time now as well as increment its sample counter
     function.time += TimePeriod(local_time=sample_runtime, accumulated_time=sample_runtime)
     function.energy += EnergyPeriod(local_energy=sample_energy, accumulated_energy=sample_energy)
     function.power += PowerPeriod(local_power=sample_power, nonlocal_power=0)
     function.num_leaf_samples += 1
 
     # energy/time to be used for entries in the callchain
-    non_local_time = TimePeriod(local_time=0, accumulated_time=sample_runtime)
+    non_local_time = TimePeriod(local_time=TimeUnit(), accumulated_time=sample_runtime)
     non_local_energy = EnergyPeriod(local_energy=0, accumulated_energy=sample_energy)
     non_local_power = PowerPeriod(local_power=0, nonlocal_power=sample_power)
 
@@ -108,6 +109,7 @@ class SingleThreadedAnalyzer(StatisticalAnalyzer):
     This class makes a very simplifying assumption that the whole program is one thread,
     that may or may not be actively scheduled.
     """
+
     def __init__(self, state_list: List[AppState]):
         super().__init__(state_list)
         self.function_dict: Dict[int, Function] = {}

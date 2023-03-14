@@ -1,17 +1,19 @@
 import copy
 import math
-from functools import singledispatch, singledispatchmethod
+from decimal import *
+from typing import Union
 
 
 def _convert_up(input_number: int) -> (int, int):
-    # Each of the units contains 1000 of the unit below it.  By taking advantage of this, we can use one function for converting
+    # Each of the units contains 1000 of the unit below it.
+    # By taking advantage of this, we can use one function for converting
     # each smaller unit into the larger unit
     given_unit = input_number % 1000
     higher_unit = math.floor(input_number / 1000)
     return higher_unit, given_unit
 
 
-def _convert_float_down(input_number: float) -> (int, float):
+def _convert_float_down(input_number: Union[float, Decimal]) -> (int, Union[float, Decimal]):
     # Takes a float number, extracts the integer portion, and returns the remainder *1000 to be converted downwards
     # in unit.
     given_unit = int(input_number)
@@ -27,66 +29,86 @@ class TimeUnit(object):
 
     def __init__(self, seconds=0, millis=0, micros=0, nanos=0):
 
-        if isinstance(seconds, float):
+        if isinstance(seconds, float) or isinstance(seconds, Decimal):
             (seconds, new_millis) = _convert_float_down(seconds)
             millis += new_millis
 
-        if isinstance(millis, float):
+        if isinstance(millis, float) or isinstance(millis, Decimal):
             millis, new_micros = _convert_float_down(millis)
             micros += new_micros
 
-        if isinstance(micros, float):
+        if isinstance(micros, float) or isinstance(millis, Decimal):
             micros, new_nanos = _convert_float_down(micros)
             nanos += new_nanos
 
         # don't do any conversion to nanos, we'll coerce it
 
-        self.seconds = int(seconds)
-        self.millis = int(millis)
-        self.micros = int(micros)
-        self.nanos = int(nanos)
-
-        self._convert_units()
+        self.nanos = int(nanos) + int(micros * 1000) + int(millis * 1000000) + int(seconds * 1000000000)
 
     def __add__(self, other):
+        if not isinstance(other, TimeUnit):
+            raise TypeError(f'Unsupported operand type {type(other)}')
         new = copy.copy(self)
-        new.seconds += other.seconds
-        new.millis += other.millis
-        new.micros += other.micros
         new.nanos += other.nanos
         return new
 
     def __iadd__(self, other):
-        self.seconds += other.seconds
-        self.millis += other.millis
-        self.micros += other.micros
+        if not isinstance(other, TimeUnit):
+            raise TypeError(f'Unsupported operand type {type(other)}')
         self.nanos += other.nanos
         return self
 
-    def _convert_units(self):
-        """
-        Ensure that each unit aside from seconds has no more than 999
-        """
-        extra_micros, new_nanos = _convert_up(self.nanos)
-        self.micros += extra_micros
-        self.nanos = new_nanos
+    def __sub__(self, other):
+        if not isinstance(other, TimeUnit):
+            raise TypeError(f'Unsupported operand type {type(other)}')
+        new = copy.copy(self)
+        new.nanos -= other.nanos
+        return new
 
-        extra_millis, new_micros = _convert_up(self.micros)
-        self.millis += extra_millis
-        self.micros = new_micros
+    def __isub__(self, other):
+        if not isinstance(other, TimeUnit):
+            raise TypeError(f'Unsupported operand type {type(other)}')
+        self.nanos -= other.nanos
+        return self
 
-        extra_secs, new_millis = _convert_up(self.millis)
-        self.seconds += extra_secs
-        self.millis = new_millis
+    def __eq__(self, other):
+        if not isinstance(other, TimeUnit):
+            raise TypeError(f'Unsupported operand type {type(other)}')
+        return self.nanos == other.nanos
 
-    def to_seconds(self) -> float:
-        return self.seconds + float(self.millis) / 1e3 + float(self.micros) / 1e6 + float(self.nanos) / 1e9
+    def __gt__(self, other):
+        if not isinstance(other, TimeUnit):
+            raise TypeError(f'Unsupported operand type {type(other)}')
+        return self.nanos > other.nanos
 
-    def to_millis(self) -> float:
-        return self.seconds * 1e3 + self.millis + float(self.micros) / 1e3 + float(self.nanos) / 1e6
+    def __ge__(self, other):
+        if not isinstance(other, TimeUnit):
+            raise TypeError(f'Unsupported operand type {type(other)}')
+        return self.nanos >= other.nanos
 
-    def to_micros(self) -> float:
-        return self.seconds * 1e6 + self.millis * 1e3 + float(self.micros) + float(self.nanos) / 1e3
+    def __lt__(self, other):
+        if not isinstance(other, TimeUnit):
+            raise TypeError(f'Unsupported operand type {type(other)}')
+        return self.nanos < other.nanos
+
+    def __le__(self, other):
+        if not isinstance(other, TimeUnit):
+            raise TypeError(f'Unsupported operand type {type(other)}')
+        return self.nanos <= other.nanos
+
+    def __str__(self):
+        return f"{self.nanos}"
+
+    # convert to decimals as there is a potential loss of precision. I don't think this is a realistic issue, but if
+    # some timestamp is (ex.) millis since the unix epoch, it would cause issues as it is too large to fit in a float.
+    def to_seconds(self) -> Decimal:
+        return Decimal(self.nanos) / Decimal(1e9)
+
+    def to_millis(self) -> Decimal:
+        return Decimal(self.nanos) / Decimal(1e6)
+
+    def to_micros(self) -> Decimal:
+        return Decimal(self.nanos) / Decimal(1e3)
 
     def to_nanos(self) -> int:
-        return int(self.seconds * 1e9 + self.millis * 1e6 + self.micros * 1e3 + self.nanos)
+        return self.nanos

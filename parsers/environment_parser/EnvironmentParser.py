@@ -1,4 +1,3 @@
-from typing import IO
 from parsers.environment_parser.entry import *
 from operator import attrgetter
 
@@ -6,7 +5,10 @@ from operator import attrgetter
 # standard compare: 0 if good, -1 if x < y, 1 if x > y
 # if timestamp < position, return -1.
 # if timestamp > position, return 1
-def check_timestamp_position(timestamp, position, logs: list[Entry]):
+from trace_representation.time_unit import TimeUnit
+
+
+def check_timestamp_position(timestamp: TimeUnit, position, logs: list[Entry]):
     power = logs[position]
     compare = power.compare_timestamp(timestamp)
 
@@ -36,7 +38,7 @@ def check_timestamp_position(timestamp, position, logs: list[Entry]):
 
 
 # binary search the log list for the timestamp occurring closest to the given timestamp, but not in the future.
-def bin_search(begin, end, timestamp, logs: list[Entry]):
+def bin_search(begin, end, timestamp: TimeUnit, logs: list[Entry]):
     # base case: we're out of options
     if begin == end:
         return logs[begin].data
@@ -90,5 +92,5 @@ class EnvironmentLog(object):
             print(str(log))
 
     # binary search for timestamp
-    def get_power_for_time(self, timestamp):
+    def get_power_for_time(self, timestamp: TimeUnit):
         return bin_search(0, len(self.power_logs) - 1, timestamp, self.power_logs)

@@ -1,5 +1,6 @@
 from enum import Enum
 from parsers.parser_args import ParserArgs
+from trace_representation.time_unit import TimeUnit
 
 
 class LogType(Enum):
@@ -35,7 +36,7 @@ def parse_line(line: str, args: ParserArgs):
 
 class Entry(object):
     def __init__(self, line):
-        self.timestamp = int(line[0])
+        self.timestamp = TimeUnit(micros=line[0])
         self.logtype = line[1]
         self.data = line[2]
 
@@ -45,7 +46,7 @@ class Entry(object):
     # standard compare: 0 if good, -1 if x < y, 1 if x > y
     # if timestamp < this, return -1.
     # if timestamp > this, return 1
-    def compare_timestamp(self, timestamp):
+    def compare_timestamp(self, timestamp: TimeUnit):
         if self.timestamp == timestamp:
             return 0
         if timestamp < self.timestamp:
@@ -63,7 +64,6 @@ class Entry(object):
 
         dist = self.timestamp - other.timestamp
         return abs(dist) if absolute else dist
-
 
 
 class DisplayState(Entry):
@@ -86,7 +86,7 @@ class Current(Entry):
         self.divider = divider
 
     def get_amps(self):
-        return float(self.data) / self.divider#1000000.0
+        return float(self.data) / self.divider  # 1000000.0
 
 
 class WifiStrength(Entry):
@@ -106,6 +106,9 @@ class WifiRoam(Entry):
 
 
 class Power(Entry):
+    # I want this to be subclassed from Entry as it contains the same data, but not the same constructor.
+    # This is an intentional failure to call parent constructor.
+    # noinspection PyMissingConstructor
     def __init__(self, voltage: Voltage, current: Current):
         self.timestamp = voltage.timestamp if voltage.timestamp > current.timestamp else current.timestamp
         self.data = voltage.get_volts() * current.get_amps()  # gives Watts

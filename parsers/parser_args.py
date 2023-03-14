@@ -1,11 +1,11 @@
-import types
-from dataclasses import dataclass
 from configparser import ConfigParser
+
 
 class ParserArgs:
     """
     Parameter "struct" that contains all the args needed for this tool
     """
+
     def __init__(self, cfg_file):
         cfg = ConfigParser()
         cfg.read(cfg_file)

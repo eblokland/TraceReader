@@ -37,11 +37,11 @@ class FunctionResult(object):
         return header
 
     def get_csv_fields(self):
-        row = [self.names, self.func1.num_leaf_samples, self.func1.num_samples, self.func2.num_leaf_samples, self.func2.num_samples]
+        row = [self.names, self.func1.num_leaf_samples, self.func1.num_samples, self.func2.num_leaf_samples,
+               self.func2.num_samples]
         for r in self.results:
             row += r.get_csv_fields()
         return row
-
 
     def add_results(self, results: List[TestResult]):
         self.results += results
@@ -67,13 +67,12 @@ def write_compare_csv(output_file: str, comp_list: List[FunctionResult]):
 
 def compare_function_powers(x: Function, y: Function, comparator_fun,
                             existing_fun_result: FunctionResult = None) -> FunctionResult:
-
     local_power_rank = comparator_fun(x.power.local_power_list, y.power.local_power_list)
     nonlocal_power_rank = comparator_fun(x.power.nonlocal_power_list, y.power.nonlocal_power_list)
 
     results = [TestResult('local power', x.mean_local_power, y.mean_local_power, local_power_rank),
                TestResult('nonlocal power', x.mean_nonlocal_power, y.mean_nonlocal_power,
-                          nonlocal_power_rank) ]
+                          nonlocal_power_rank)]
 
     if existing_fun_result is None:
         existing_fun_result = FunctionResult(x, y, results)
