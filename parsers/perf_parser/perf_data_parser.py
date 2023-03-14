@@ -8,24 +8,15 @@ from parsers.environment_parser.EnvironmentParser import EnvironmentLog
 from trace_representation.simpleperf_python_datatypes import CallChain, Symbol
 
 
-def _get_energy_cost_of_sample(environment_log: EnvironmentLog, timestamp, period) -> (float, float):
-    cur_power = environment_log.get_power_for_time(timestamp)
-    power = environment_log.get_power_for_time(timestamp)
-    energy_used = power * period / 1e9  # assumes that period is in nanoseconds
-    return energy_used, cur_power
-
-
 class PerfDataParser(object):
     """
     Class that parses a perf.data file into an intermediate representation.
     """
 
-    def __init__(self, environment_log: EnvironmentLog, args: ParserArgs):
+    def __init__(self, args: ParserArgs):
         """
-        :param environment_log: EnvironmentLog produced by EnvironmentParser
         :param args: ParserArgs object
         """
-        self.environment_log = environment_log
         self.args = args
         self.states: List[AppState] = []
 
@@ -57,13 +48,13 @@ class PerfDataParser(object):
             samp = lib.GetCurrentSample()
             period = samp.period
             timestamp = samp.time / 1e6  # simpleperf reports in nanoseconds, my tool in milliseconds
-            energy_cost, power = _get_energy_cost_of_sample(self.environment_log, timestamp, period)
+            #energy_cost, power = _get_energy_cost_of_sample(self.environment_log, timestamp, period)
 
             thread_sample = ThreadSample(Symbol(lib.GetSymbolOfCurrentSample()),
                                          CallChain(lib.GetCallChainOfCurrentSample()))
 
             app_sample = AppSample([thread_sample])
-            new_state = AppState(timestamp, period, energy_cost, app_sample, EnvironmentState(), power)
+            new_state = AppState(timestamp, period, 0, app_sample, EnvironmentState(), 0)
 
             states.append(new_state)
 

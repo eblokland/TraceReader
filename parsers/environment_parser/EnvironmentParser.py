@@ -1,5 +1,5 @@
 from typing import IO
-from entry import *
+from parsers.environment_parser.entry import *
 from operator import attrgetter
 
 
@@ -50,9 +50,8 @@ def bin_search(begin, end, timestamp, logs: list[Entry]):
 
 
 class EnvironmentLog(object):
-    def __init__(self, logfile, args: ParserArgs):
-        if type(logfile) is str:
-            logfile = open(logfile)
+    def __init__(self, args: ParserArgs):
+        logfile = open(args.environment_log_file)
         lines = logfile.readlines()
         logs = map(lambda line: parse_line(line, args), lines)
         self.raw_logs = list(logs)
