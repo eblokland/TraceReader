@@ -36,7 +36,7 @@ def parse_line(line: str, args: ParserArgs):
 
 class Entry(object):
     def __init__(self, line):
-        self.timestamp = TimeUnit(micros=line[0])
+        self.timestamp = TimeUnit(millis=int(line[0]))
         self.logtype = line[1]
         self.data = line[2]
 

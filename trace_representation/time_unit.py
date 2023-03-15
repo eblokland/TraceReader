@@ -43,7 +43,7 @@ class TimeUnit(object):
 
         # don't do any conversion to nanos, we'll coerce it
 
-        self.nanos = int(nanos) + int(micros * 1000) + int(millis * 1000000) + int(seconds * 1000000000)
+        self.nanos = int(nanos) + int(micros) * 1000 + int(millis) * 1000000 + int(seconds) * 10000000000
 
     def __add__(self, other):
         if not isinstance(other, TimeUnit):
