@@ -110,8 +110,8 @@ class SingleThreadedAnalyzer(StatisticalAnalyzer):
     that may or may not be actively scheduled.
     """
 
-    def __init__(self, state_list: List[AppState]):
-        super().__init__(state_list)
+    def __init__(self, state_list: List[AppState], begin_time: TimeUnit = None, end_time: TimeUnit = None):
+        super().__init__(state_list, begin_time, end_time)
         self.function_dict: Dict[int, Function] = {}
 
     def perform_analysis(self):
