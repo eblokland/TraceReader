@@ -67,8 +67,8 @@ def write_compare_csv(output_file: str, comp_list: List[FunctionResult]):
 
 def compare_function_powers(x: Function, y: Function, comparator_fun,
                             existing_fun_result: FunctionResult = None) -> FunctionResult:
-    local_power_rank = comparator_fun(x.power.local_power_list, y.power.local_power_list)
-    nonlocal_power_rank = comparator_fun(x.power.nonlocal_power_list, y.power.nonlocal_power_list)
+    local_power_rank = comparator_fun(x.power.local_power_set, y.power.local_power_set)
+    nonlocal_power_rank = comparator_fun(x.power.nonlocal_power_set, y.power.nonlocal_power_set)
 
     results = [TestResult('local power', x.mean_local_power, y.mean_local_power, local_power_rank),
                TestResult('nonlocal power', x.mean_nonlocal_power, y.mean_nonlocal_power,

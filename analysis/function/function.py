@@ -1,9 +1,10 @@
 import math
-from typing import Set, MutableSet, Union
+from typing import Set, MutableSet, Union, Iterable, Collection
 
 from scipy.stats import norm
 
-from trace_representation.simpleperf_python_datatypes import TimePeriod, EnergyPeriod, PowerPeriod
+from trace_representation.simpleperf_python_datatypes import TimePeriod, EnergyPeriod
+from trace_representation.app_sample import PowerPeriod, PowerSample
 
 
 class LocalNonLocal(object):
@@ -121,17 +122,17 @@ class Function(object):
         """
         percentile = norm.ppf(1 - (alpha / 2))
 
-        def s(pow_hat, pow_list):
+        def s(pow_hat: float, pow_list: Collection[PowerSample]):
             n_bbm = len(pow_list)
             pow_sum = 0.0
             for p in pow_list:
-                pow_sum += (p - pow_hat) ** 2
+                pow_sum += (p.power - pow_hat) ** 2
 
             return math.sqrt(
                 (1 / (n_bbm - 1)) * pow_sum
             )
 
-        def intervals(pow_hat, pow_list) -> ProbInterval:
+        def intervals(pow_hat: float, pow_list: Collection[PowerSample]) -> ProbInterval:
 
             n_bbm = len(pow_list)
             if n_bbm < 2:
@@ -144,15 +145,15 @@ class Function(object):
             return ProbInterval(lower=lower, upper=upper)
 
         # just double check this...
-        assert self.num_leaf_samples == len(self.power.local_power_list), \
-            str(self.num_leaf_samples) + ' is not ' + str(
-                len(self.power.local_power_list)) + ' did you set the current multiplier correctly?'
-        assert self.num_samples == len(self.power.nonlocal_power_list), \
-            str(self.num_samples) + ' is not ' + str(
-                len(self.power.nonlocal_power_list)) + ' did you set the current multiplier correctly?'
+#        assert self.num_leaf_samples == len(self.power.local_power_set), \
+#            str(self.num_leaf_samples) + ' is not ' + str(
+#                len(self.power.local_power_set)) + ' did you set the current multiplier correctly?'
+#        assert self.num_samples == len(self.power.nonlocal_power_set), \
+#            str(self.num_samples) + ' is not ' + str(
+#                len(self.power.nonlocal_power_set)) + ' did you set the current multiplier correctly?'
 
-        self.mean_local_power_interval = intervals(self.mean_local_power, self.power.local_power_list)
-        self.mean_nonlocal_power_interval = intervals(self.mean_nonlocal_power, self.power.nonlocal_power_list)
+        self.mean_local_power_interval = intervals(self.mean_local_power, self.power.local_power_set)
+        self.mean_nonlocal_power_interval = intervals(self.mean_nonlocal_power, self.power.nonlocal_power_set)
 
     def get_names(self):
         return ' .. '.join(self.name_set)

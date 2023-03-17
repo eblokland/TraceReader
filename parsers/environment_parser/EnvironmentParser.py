@@ -38,14 +38,14 @@ def check_timestamp_position(timestamp: TimeUnit, position, logs: list[Entry]):
 
 
 # binary search the log list for the timestamp occurring closest to the given timestamp, but not in the future.
-def bin_search(begin, end, timestamp: TimeUnit, logs: list[Entry]):
+def bin_search(begin, end, timestamp: TimeUnit, logs: list[Power]) -> Power:
     # base case: we're out of options
     if begin == end:
-        return logs[begin].data
+        return logs[begin]
     middle = begin + (int((end - begin) / 2))
     comp = check_timestamp_position(timestamp, middle, logs)
     if comp == 0:
-        return logs[middle].data
+        return logs[middle]
     if comp == -1:
         return bin_search(begin, middle - 1, timestamp, logs)
     return bin_search(middle + 1, end, timestamp, logs)
@@ -92,5 +92,5 @@ class EnvironmentLog(object):
             print(str(log))
 
     # binary search for timestamp
-    def get_power_for_time(self, timestamp: TimeUnit):
+    def get_power_for_time(self, timestamp: TimeUnit) -> Power:
         return bin_search(0, len(self.power_logs) - 1, timestamp, self.power_logs)

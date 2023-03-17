@@ -2,9 +2,8 @@ from typing import Any, Dict, List, Callable
 
 from analysis.function.function import Function
 from analysis.statistical_analysis import StatisticalAnalyzer
-from trace_representation.app_sample import AppState
-from trace_representation.simpleperf_python_datatypes import TimePeriod, EnergyPeriod, CallChainEntry, Symbol, \
-    PowerPeriod
+from trace_representation.app_sample import AppState, PowerPeriod
+from trace_representation.simpleperf_python_datatypes import TimePeriod, EnergyPeriod, CallChainEntry, Symbol
 from trace_representation.time_unit import TimeUnit
 
 
@@ -83,13 +82,13 @@ def _analyze_state(app_state: AppState, total_time: int, function_dict: Dict[int
     # attribute its local energy and time now as well as increment its sample counter
     function.time += TimePeriod(local_time=sample_runtime, accumulated_time=sample_runtime)
     function.energy += EnergyPeriod(local_energy=sample_energy, accumulated_energy=sample_energy)
-    function.power += PowerPeriod(local_power=sample_power, nonlocal_power=0)
+    function.power += PowerPeriod(local_power=sample_power)
     function.num_leaf_samples += 1
 
     # energy/time to be used for entries in the callchain
     non_local_time = TimePeriod(local_time=TimeUnit(), accumulated_time=sample_runtime)
     non_local_energy = EnergyPeriod(local_energy=0, accumulated_energy=sample_energy)
-    non_local_power = PowerPeriod(local_power=0, nonlocal_power=sample_power)
+    non_local_power = PowerPeriod(nonlocal_power=sample_power)
 
     # for each entry in the callchain, we enter it as a child of its parent (entry after it in callchain), and attribute
     # non-local energy and runtime

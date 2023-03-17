@@ -3,7 +3,7 @@ from typing import List
 from simpleperf_report_lib import ReportLib
 
 from parsers.parser_args import ParserArgs
-from trace_representation.app_sample import AppState, AppSample, EnvironmentState, ThreadSample
+from trace_representation.app_sample import AppState, AppSample, EnvironmentState, ThreadSample, PowerSample
 from trace_representation.simpleperf_python_datatypes import CallChain, Symbol
 from trace_representation.time_unit import TimeUnit
 
@@ -59,7 +59,7 @@ class PerfDataParser(object):
                                          CallChain(lib.GetCallChainOfCurrentSample()))
 
             app_sample = AppSample([thread_sample])
-            new_state = AppState(timestamp, period, 0, app_sample, EnvironmentState(), 0)
+            new_state = AppState(timestamp, period, 0, app_sample, EnvironmentState(), None)
 
             states.append(new_state)
 

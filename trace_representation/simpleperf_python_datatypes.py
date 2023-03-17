@@ -1,6 +1,6 @@
 # python versions of simpleperf data structures.
 # yes, this is very memory inefficient.  just download more ram
-from typing import List
+from typing import List, Union, Set
 
 from simpleperf_report_lib import CallChainStructure, CallChainEntryStructure, SymbolStruct
 
@@ -100,32 +100,6 @@ class TimePeriod(object):
     def __str__(self) -> str:
         return 'local time: ' + str(self.local_time) + ' acc time: ' + str(self.accumulated_time)
 
-
-class PowerPeriod(object):
-    """
-    Accumulates the power used by samples of a function.  not useful without knowing the amount of time it ran for.
-    """
-
-    def __init__(self, local_power=0.0, nonlocal_power=0.0):
-        """
-        :param local_power:  power used by this function in *local* code
-        :param nonlocal_power: power used by this function in *non-local* code
-        """
-        self.local_power = local_power
-        self.nonlocal_power = nonlocal_power
-        # if local_power is 0, then this wasn't a local sample.
-        # don't add it to the list.
-        self.local_power_list = [local_power] if local_power > 0 else []
-        self.nonlocal_power_list = [nonlocal_power] if nonlocal_power > 0 else []
-
-    def __iadd__(self, other):
-        if not isinstance(other, PowerPeriod):
-            raise TypeError("Incorrect type provided, not a PowerPeriod")
-        self.local_power += other.local_power
-        self.nonlocal_power += other.nonlocal_power
-        self.local_power_list += other.local_power_list
-        self.nonlocal_power_list += other.nonlocal_power_list
-        return self
 
 
 class EnergyPeriod(object):
