@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import math
 from typing import Set, MutableSet, Union, Iterable, Collection
 
@@ -14,12 +16,15 @@ class LocalNonLocal(object):
 
 
 class ProbInterval(object):
-    def __init__(self, lower=-1, upper=-1):
-        self.lower = lower
-        self.upper = upper
+    def __init__(self, lower: float = -1, upper: float = -1):
+        self.lower: float = lower
+        self.upper: float = upper
 
     def __str__(self):
         return '[' + str(self.lower) + ', ' + str(self.upper) + ']'
+
+    def is_valid(self):
+        return 0 <= self.lower <= self.upper
 
 
 class Function(object):
@@ -48,6 +53,8 @@ class Function(object):
         self.nonlocal_prob_interval: Union[ProbInterval, None] = None
         self.mean_local_power_interval: Union[ProbInterval, None] = None
         self.mean_nonlocal_power_interval: Union[ProbInterval, None] = None
+        self.local_energy_interval: Union[ProbInterval, None] = None
+        self.nonlocal_energy_interval: Union[ProbInterval, None] = None
 
     def post_process(self, total_samples: int, total_runtime_seconds: float):
         """
@@ -62,6 +69,7 @@ class Function(object):
         self._set_power()
         self._prob_interval(n=total_samples, alpha=0.05)
         self._power_interval(alpha=0.05)
+        self._energy_interval(total_runtime_seconds)
 
     def _set_prob(self, n):
         """
@@ -145,18 +153,40 @@ class Function(object):
             return ProbInterval(lower=lower, upper=upper)
 
         # just double check this...
-#        assert self.num_leaf_samples == len(self.power.local_power_set), \
-#            str(self.num_leaf_samples) + ' is not ' + str(
-#                len(self.power.local_power_set)) + ' did you set the current multiplier correctly?'
-#        assert self.num_samples == len(self.power.nonlocal_power_set), \
-#            str(self.num_samples) + ' is not ' + str(
-#                len(self.power.nonlocal_power_set)) + ' did you set the current multiplier correctly?'
+        #        assert self.num_leaf_samples == len(self.power.local_power_set), \
+        #            str(self.num_leaf_samples) + ' is not ' + str(
+        #                len(self.power.local_power_set)) + ' did you set the current multiplier correctly?'
+        #        assert self.num_samples == len(self.power.nonlocal_power_set), \
+        #            str(self.num_samples) + ' is not ' + str(
+        #                len(self.power.nonlocal_power_set)) + ' did you set the current multiplier correctly?'
 
         self.mean_local_power_interval = intervals(self.mean_local_power, self.power.local_power_set)
         self.mean_nonlocal_power_interval = intervals(self.mean_nonlocal_power, self.power.nonlocal_power_set)
 
+    def _energy_interval(self, total_time_secs: float):
+        if self.local_prob_interval.is_valid() and self.nonlocal_prob_interval.is_valid() \
+                and self.mean_local_power_interval.is_valid() and self.mean_nonlocal_power_interval.is_valid():
+
+            self.local_energy_interval = ProbInterval(
+                self.local_prob_interval.lower * total_time_secs * self.mean_local_power_interval.lower,
+                self.local_prob_interval.upper * total_time_secs * self.mean_local_power_interval.upper
+            )
+            self.nonlocal_energy_interval = ProbInterval(
+                self.nonlocal_prob_interval.lower * total_time_secs * self.mean_nonlocal_power_interval.lower,
+                self.nonlocal_prob_interval.upper * total_time_secs * self.mean_nonlocal_power_interval.upper
+            )
+        else:
+            self.local_energy_interval = ProbInterval()
+            self.nonlocal_energy_interval = ProbInterval()
+
     def get_names(self):
         return ' .. '.join(self.name_set)
+
+    def get_local_power_list(self):
+        return list(map(lambda x: x.power, self.power.local_power_set))
+
+    def get_nonlocal_power_list(self):
+        return list(map(lambda x: x.power, self.power.nonlocal_power_set))
 
     def __str__(self):
         string = "Fun at " + str(self.addr) + " with names "
