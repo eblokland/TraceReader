@@ -164,20 +164,17 @@ class Function(object):
         self.mean_nonlocal_power_interval = intervals(self.mean_nonlocal_power, self.power.nonlocal_power_set)
 
     def _energy_interval(self, total_time_secs: float):
-        if self.local_prob_interval.is_valid() and self.nonlocal_prob_interval.is_valid() \
-                and self.mean_local_power_interval.is_valid() and self.mean_nonlocal_power_interval.is_valid():
-
-            self.local_energy_interval = ProbInterval(
+        local_is_valid = self.local_prob_interval.is_valid() and self.mean_local_power_interval.is_valid()
+        nonlocal_is_valid = self.nonlocal_prob_interval.is_valid() and self.mean_nonlocal_power_interval.is_valid()
+        self.local_energy_interval = ProbInterval(
                 self.local_prob_interval.lower * total_time_secs * self.mean_local_power_interval.lower,
                 self.local_prob_interval.upper * total_time_secs * self.mean_local_power_interval.upper
-            )
-            self.nonlocal_energy_interval = ProbInterval(
+            ) if local_is_valid else ProbInterval()
+
+        self.nonlocal_prob_interval = ProbInterval(
                 self.nonlocal_prob_interval.lower * total_time_secs * self.mean_nonlocal_power_interval.lower,
                 self.nonlocal_prob_interval.upper * total_time_secs * self.mean_nonlocal_power_interval.upper
-            )
-        else:
-            self.local_energy_interval = ProbInterval()
-            self.nonlocal_energy_interval = ProbInterval()
+            ) if nonlocal_is_valid else ProbInterval()
 
     def get_names(self):
         return ' .. '.join(self.name_set)
