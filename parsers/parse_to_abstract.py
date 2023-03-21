@@ -16,7 +16,7 @@ def _get_energy_cost_of_sample(environment_log: EnvironmentLog, timestamp: TimeU
     return energy_used, cur_power
 
 
-def parse_to_abstract(args: ParserArgs) -> List[AppState]:
+def parse_to_abstract(args: ParserArgs) -> (List[AppState], List[PowerSample]):
     env_samples = EnvironmentLog(args)
     perf_parser = PerfDataParser(args)
     states = perf_parser.parse()
@@ -37,4 +37,4 @@ def parse_to_abstract(args: ParserArgs) -> List[AppState]:
         energy_cost, power = get_power_sample(state.timestamp, state.period)
         state.energy_consumed = energy_cost
         state.power = power
-    return states
+    return states, list(encountered_power_states.values())
