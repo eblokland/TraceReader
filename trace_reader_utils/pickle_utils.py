@@ -1,6 +1,8 @@
 import gzip
 import pickle
+from typing import Dict
 
+from analysis.function.function import Function
 from parsers.parser_args import ParserArgs
 
 
@@ -23,3 +25,12 @@ def gzip_unpickle(input_file: str):
             return pickle.load(pickle_file)
     else:
         return None
+
+
+def get_dict_from_pickle(input_file: str) -> Dict:
+    obj = gzip_unpickle(input_file)
+    if obj is None:
+        raise ValueError(f'File not found or invalid file')
+    if not isinstance(obj, Dict):
+        raise TypeError(f'Pickle does not contain a dict')
+    return obj

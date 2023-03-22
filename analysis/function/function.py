@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import Set, MutableSet, Union, Iterable, Collection
+from typing import Set, MutableSet, Union, Iterable, Collection, List
 
 from scipy.stats import norm
 
@@ -167,23 +167,26 @@ class Function(object):
         local_is_valid = self.local_prob_interval.is_valid() and self.mean_local_power_interval.is_valid()
         nonlocal_is_valid = self.nonlocal_prob_interval.is_valid() and self.mean_nonlocal_power_interval.is_valid()
         self.local_energy_interval = ProbInterval(
-                self.local_prob_interval.lower * total_time_secs * self.mean_local_power_interval.lower,
-                self.local_prob_interval.upper * total_time_secs * self.mean_local_power_interval.upper
-            ) if local_is_valid else ProbInterval()
+            self.local_prob_interval.lower * total_time_secs * self.mean_local_power_interval.lower,
+            self.local_prob_interval.upper * total_time_secs * self.mean_local_power_interval.upper
+        ) if local_is_valid else ProbInterval()
 
         self.nonlocal_prob_interval = ProbInterval(
-                self.nonlocal_prob_interval.lower * total_time_secs * self.mean_nonlocal_power_interval.lower,
-                self.nonlocal_prob_interval.upper * total_time_secs * self.mean_nonlocal_power_interval.upper
-            ) if nonlocal_is_valid else ProbInterval()
+            self.nonlocal_prob_interval.lower * total_time_secs * self.mean_nonlocal_power_interval.lower,
+            self.nonlocal_prob_interval.upper * total_time_secs * self.mean_nonlocal_power_interval.upper
+        ) if nonlocal_is_valid else ProbInterval()
 
     def get_names(self):
         return ' .. '.join(self.name_set)
 
-    def get_local_power_list(self):
+    def get_local_power_list(self) -> List[PowerSample]:
         return list(map(lambda x: x.power, self.power.local_power_set))
 
-    def get_nonlocal_power_list(self):
+    def get_nonlocal_power_list(self) -> List[PowerSample]:
         return list(map(lambda x: x.power, self.power.nonlocal_power_set))
+
+    def get_combined_power_list(self) -> List[float]:
+        return list(map(lambda x: x.power, self.power.get_combined_power_set()))
 
     def __str__(self):
         string = "Fun at " + str(self.addr) + " with names "

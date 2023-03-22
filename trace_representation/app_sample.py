@@ -1,4 +1,4 @@
-from typing import List, Union, Set
+from typing import List, Union, Set, Optional
 
 from trace_representation.simpleperf_python_datatypes import CallChain, Symbol
 from trace_representation.time_unit import TimeUnit
@@ -50,12 +50,13 @@ class PowerSample(object):
        # return self.timestamp == other.timestamp
 
 
+
 class PowerPeriod(object):
     """
     Accumulates the power used by samples of a function.  not useful without knowing the amount of time it ran for.
     """
 
-    def __init__(self, local_power: Union[PowerSample, None] = None, nonlocal_power: Union[PowerSample, None] = None):
+    def __init__(self, local_power: Optional[PowerSample] = None, nonlocal_power: Optional[PowerSample] = None):
         """
         :param local_power:  power used by this function in *local* code
         :param nonlocal_power: power used by this function in *non-local* code
@@ -77,6 +78,9 @@ class PowerPeriod(object):
         self.nonlocal_power_set.update(other.nonlocal_power_set)
 
         return self
+
+    def get_combined_power_set(self) -> Set[PowerSample]:
+        return self.local_power_set.union(self.nonlocal_power_set)
 
 
 class AppState(object):
