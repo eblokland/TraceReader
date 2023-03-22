@@ -85,7 +85,7 @@ class PowerPeriod(object):
 
 class AppState(object):
     def __init__(self, timestamp: TimeUnit, period: TimeUnit, energy_consumed, sample: AppSample, env: EnvironmentState,
-                 power: Union[PowerSample, None] = None):
+                 power: Optional[PowerSample] = None):
         """
         :param timestamp: timestamp in whatever clock was specified, using TimeUnit
         :param period: time until next AppState
@@ -99,7 +99,7 @@ class AppState(object):
         self.energy_consumed: float = energy_consumed
 
         self.period: TimeUnit = period
-        self.power: Union[PowerSample, None] = power
+        self.power: Optional[PowerSample] = power
         self.environment: EnvironmentState = env
 
 # def is_multithreaded(self):

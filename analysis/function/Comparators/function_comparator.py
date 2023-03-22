@@ -11,15 +11,9 @@ from trace_representation.app_sample import PowerSample
 
 def _compare_and_calc_avg(power_list1: List[float], power_list2: List[float],
                           comparator_fun, identifier: str) -> TestResult:
-    def red_op(x: Union[float, int, PowerSample], y: Union[float, int, PowerSample]):
-        if isinstance(x, PowerSample):
-            x = x.power
-        if isinstance(y, PowerSample):
-            y = y.power
-        return x + y
 
-    avg1 = reduce(red_op, power_list1) / len(power_list1)
-    avg2 = reduce(red_op, power_list2) / len(power_list2)
+    avg1 = sum(power_list1) / len(power_list1)
+    avg2 = sum(power_list2) / len(power_list2)
 
     rank = comparator_fun(power_list1, power_list2)
     return TestResult(identifier, avg1, avg2, rank)
