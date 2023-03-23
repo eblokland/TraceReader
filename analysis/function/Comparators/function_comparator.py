@@ -1,12 +1,10 @@
-from functools import singledispatch, reduce
-from typing import List, Dict, Union
-import csv
+from functools import singledispatch
+from typing import List, Dict, Union, Optional
 from scipy.stats import wilcoxon, ttest_ind
 
 from analysis.function.Comparators.function_result import FunctionResult
 from analysis.function.Comparators.test_result import TestResult
 from analysis.function.function import Function
-from trace_representation.app_sample import PowerSample
 
 
 def _compare_and_calc_avg(power_list1: List[float], power_list2: List[float],
@@ -68,7 +66,7 @@ def get_fun(fun, fun_dict):
 
 @get_fun.register
 def _get_fun_by_name(name: str, fun_dict: Dict[int, Function]) -> Function:
-    return next((fun for fun in fun_dict.values() if name in fun.name_set), None)
+    return next((fun for fun in fun_dict.values() if name in fun.name_set))
 
 
 @get_fun.register
@@ -77,15 +75,17 @@ def _get_fun_by_id(fun_id: int, fun_dict: Dict[int, Function]) -> Function:
 
 
 def compare_functions(fun1: Union[str, int], fun2: Union[str, int],
-                      fun_dict1: Dict[int, Function], fun_dict2: Dict[int, Function]) -> FunctionResult:
+                      fun_dict1: Dict[int, Function], fun_dict2: Dict[int, Function]) -> Optional[FunctionResult]:
 
-    func1 = get_fun(fun1, fun_dict1)
-    func2 = get_fun(fun2, fun_dict2)
-    if func1 is None or func2 is None:
-        if func1 is None:
-            print(f'{fun1} not found in dict!')
-        if func2 is None:
-            print(f'{fun2} not found in dict!')
-        raise KeyError
+    try:
+        func1 = get_fun(fun1, fun_dict1)
+    except (StopIteration, IndexError):
+        print(f'Unable to find {fun1}')
+        return None
+    try:
+        func2 = get_fun(fun2, fun_dict2)
+    except (StopIteration, IndexError):
+        print(f'Unable to find {fun2}')
+        return None
 
     return welch_power(func1, func2)
