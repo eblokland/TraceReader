@@ -171,7 +171,7 @@ class Function(object):
             self.local_prob_interval.upper * total_time_secs * self.mean_local_power_interval.upper
         ) if local_is_valid else ProbInterval()
 
-        self.nonlocal_prob_interval = ProbInterval(
+        self.nonlocal_energy_interval = ProbInterval(
             self.nonlocal_prob_interval.lower * total_time_secs * self.mean_nonlocal_power_interval.lower,
             self.nonlocal_prob_interval.upper * total_time_secs * self.mean_nonlocal_power_interval.upper
         ) if nonlocal_is_valid else ProbInterval()
