@@ -1,9 +1,7 @@
 import gzip
-import os
 import pickle
 from typing import Dict, Union
 
-from analysis.function.function import Function
 from parsers.parser_args import ParserArgs
 from trace_reader_utils.file_utils import get_filename
 

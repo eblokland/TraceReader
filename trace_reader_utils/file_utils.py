@@ -1,6 +1,5 @@
 import os
 from functools import singledispatch
-from typing import List
 
 from parsers.parser_args import ParserArgs
 

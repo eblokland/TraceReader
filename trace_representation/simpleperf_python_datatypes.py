@@ -1,6 +1,6 @@
 # python versions of simpleperf data structures.
 # yes, this is very memory inefficient.  just download more ram
-from typing import List, Union, Set
+from typing import List
 
 from simpleperf_report_lib import CallChainStructure, CallChainEntryStructure, SymbolStruct
 

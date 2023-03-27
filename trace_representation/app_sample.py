@@ -1,4 +1,4 @@
-from typing import List, Union, Set, Optional
+from typing import List, Optional
 
 from trace_representation.simpleperf_python_datatypes import CallChain, Symbol
 from trace_representation.time_unit import TimeUnit
@@ -44,11 +44,6 @@ class PowerSample(object):
         self.power = power
         self.timestamp = timestamp
 
-    #def __eq__(self, other):
-     #   if not isinstance(other, PowerSample):
-      #      return False
-       # return self.timestamp == other.timestamp
-
 
 
 class PowerPeriod(object):
@@ -65,8 +60,8 @@ class PowerPeriod(object):
         self.nonlocal_power: float = nonlocal_power.power if nonlocal_power is not None else 0.0
         # if local_power is 0, then this wasn't a local sample.
         # don't add it to the list.
-        self.local_power_set: Set[PowerSample] = {local_power} if local_power is not None else set()
-        self.nonlocal_power_set: Set[PowerSample] = {nonlocal_power} if nonlocal_power is not None else set()
+        self._local_power_list: List[PowerSample] = [local_power] if local_power is not None else list()
+        self._nonlocal_power_list: List[PowerSample] = [nonlocal_power] if nonlocal_power is not None else list()
 
     def __iadd__(self, other):
         if not isinstance(other, PowerPeriod):
@@ -74,13 +69,32 @@ class PowerPeriod(object):
         self.local_power += other.local_power
         self.nonlocal_power += other.nonlocal_power
 
-        self.local_power_set.update(other.local_power_set)
-        self.nonlocal_power_set.update(other.nonlocal_power_set)
+        self._local_power_list += other._local_power_list
+        self._nonlocal_power_list += other._nonlocal_power_list
 
         return self
 
-    def get_combined_power_set(self) -> Set[PowerSample]:
-        return self.local_power_set.union(self.nonlocal_power_set)
+    def get_combined_power(self, filter_dupes: bool = True):
+        if filter_dupes:
+            return set(self._local_power_list).union(set(self._nonlocal_power_list))
+        else:
+            return self._local_power_list + self._nonlocal_power_list
+
+    def get_local_power(self, filter_dupes: bool = True):
+        if filter_dupes:
+            return set(self._local_power_list)
+        else:
+            return self._local_power_list
+
+    def get_nonlocal_power(self, filter_dupes: bool = True):
+        if filter_dupes:
+            return set(self._nonlocal_power_list)
+        else:
+            return self._nonlocal_power_list
+
+
+
+
 
 
 class AppState(object):

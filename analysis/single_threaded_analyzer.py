@@ -109,9 +109,11 @@ class SingleThreadedAnalyzer(StatisticalAnalyzer):
     that may or may not be actively scheduled.
     """
 
-    def __init__(self, state_list: List[AppState], begin_time: TimeUnit = None, end_time: TimeUnit = None):
+    def __init__(self, state_list: List[AppState], begin_time: TimeUnit = None,
+                 end_time: TimeUnit = None, filter_dupes: bool = True):
         super().__init__(state_list, begin_time, end_time)
         self.function_dict: Dict[int, Function] = {}
+        self.filter_dupes = filter_dupes
 
     def perform_analysis(self):
         total_time = 0
@@ -126,7 +128,7 @@ class SingleThreadedAnalyzer(StatisticalAnalyzer):
 
         total_samples = len(self._state_list)
         for fun in self.function_dict.values():
-            fun.post_process(total_samples, total_time / 1e9)
+            fun.post_process(total_samples, total_time / 1e9, self.filter_dupes)
 
     def get_sorted_fun_list(self, key: Callable[[Function], Any] = lambda fun: fun.local_energy_cost, reverse=False):
         """

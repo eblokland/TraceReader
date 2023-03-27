@@ -1,5 +1,5 @@
 import csv
-from typing import List, Any, Optional, Union
+from typing import List, Any, Union
 
 from analysis.function.function import Function
 from parsers.parser_args import ParserArgs

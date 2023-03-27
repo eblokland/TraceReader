@@ -1,4 +1,4 @@
-from typing import List, Set, Dict
+from typing import List, Dict
 
 from parsers.environment_parser.EnvironmentParser import EnvironmentLog
 from parsers.environment_parser.entry import Power

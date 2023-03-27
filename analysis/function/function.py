@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import math
-from typing import Set, MutableSet, Union, Iterable, Collection, List
+from typing import Set, MutableSet, Union, Collection, List
 
 from scipy.stats import norm
 
-from trace_representation.simpleperf_python_datatypes import TimePeriod, EnergyPeriod
 from trace_representation.app_sample import PowerPeriod, PowerSample
+from trace_representation.simpleperf_python_datatypes import TimePeriod, EnergyPeriod
 
 
 class LocalNonLocal(object):
@@ -56,7 +56,7 @@ class Function(object):
         self.local_energy_interval: Union[ProbInterval, None] = None
         self.nonlocal_energy_interval: Union[ProbInterval, None] = None
 
-    def post_process(self, total_samples: int, total_runtime_seconds: float):
+    def post_process(self, total_samples: int, total_runtime_seconds: float, filter_dupes: bool = True):
         """
         Processes this function using information only known after running through the samples once.
         Calculates the probabilities and from that, the runtime. DOES NOT use the period for this, it is calculated
@@ -68,7 +68,7 @@ class Function(object):
         self._set_runtime(total_runtime_seconds)
         self._set_power()
         self._prob_interval(n=total_samples, alpha=0.05)
-        self._power_interval(alpha=0.05)
+        self._power_interval(alpha=0.05, filter_dupes=filter_dupes)
         self._energy_interval(total_runtime_seconds)
 
     def _set_prob(self, n):
@@ -123,7 +123,7 @@ class Function(object):
         self.local_prob_interval = do_prob(self.local_prob)
         self.nonlocal_prob_interval = do_prob(self.nonlocal_prob)
 
-    def _power_interval(self, alpha):
+    def _power_interval(self, alpha, filter_dupes: bool = True):
         """
         Calculates confidence interval for power
         :param alpha: desired alpha value
@@ -160,8 +160,10 @@ class Function(object):
         #            str(self.num_samples) + ' is not ' + str(
         #                len(self.power.nonlocal_power_set)) + ' did you set the current multiplier correctly?'
 
-        self.mean_local_power_interval = intervals(self.mean_local_power, self.power.local_power_set)
-        self.mean_nonlocal_power_interval = intervals(self.mean_nonlocal_power, self.power.nonlocal_power_set)
+        self.mean_local_power_interval = intervals(self.mean_local_power,
+                                                   self.power.get_local_power(filter_dupes=filter_dupes))
+        self.mean_nonlocal_power_interval = intervals(self.mean_nonlocal_power,
+                                                      self.power.get_nonlocal_power(filter_dupes=filter_dupes))
 
     def _energy_interval(self, total_time_secs: float):
         local_is_valid = self.local_prob_interval.is_valid() and self.mean_local_power_interval.is_valid()
@@ -179,14 +181,14 @@ class Function(object):
     def get_names(self):
         return ' .. '.join(self.name_set)
 
-    def get_local_power_list(self) -> List[PowerSample]:
-        return list(map(lambda x: x.power, self.power.local_power_set))
+    def get_local_power_list(self, filter_dupes: bool) -> List[PowerSample]:
+        return list(map(lambda x: x.power, self.power.get_local_power(filter_dupes=filter_dupes)))
 
-    def get_nonlocal_power_list(self) -> List[PowerSample]:
-        return list(map(lambda x: x.power, self.power.nonlocal_power_set))
+    def get_nonlocal_power_list(self, filter_dupes: bool) -> List[PowerSample]:
+        return list(map(lambda x: x.power, self.power.get_nonlocal_power(filter_dupes)))
 
-    def get_combined_power_list(self) -> List[float]:
-        return list(map(lambda x: x.power, self.power.get_combined_power_set()))
+    def get_combined_power_list(self, filter_dupes: bool) -> List[float]:
+        return list(map(lambda x: x.power, self.power.get_combined_power(filter_dupes)))
 
     def __str__(self):
         string = "Fun at " + str(self.addr) + " with names "

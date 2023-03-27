@@ -3,7 +3,7 @@ from typing import List
 from simpleperf_report_lib import ReportLib
 
 from parsers.parser_args import ParserArgs
-from trace_representation.app_sample import AppState, AppSample, EnvironmentState, ThreadSample, PowerSample
+from trace_representation.app_sample import AppState, AppSample, EnvironmentState, ThreadSample
 from trace_representation.simpleperf_python_datatypes import CallChain, Symbol
 from trace_representation.time_unit import TimeUnit
 

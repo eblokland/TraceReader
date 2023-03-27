@@ -13,6 +13,7 @@ class ParserArgs:
         self.ndk_dir = config.get('ndk_dir')
         self.parse_dir = config.getboolean('parse_full_dir')
         self.environment_log_dir = config.get('environment_log_dir')
+        self.filter_dupes = config.getboolean('filter_dupes', True)
         self.simpleperf_log_dir = config.get('simpleperf_log_dir')
         self.shared_filename = config.get('shared_filename')
         self.binary_cache = config.get('binary_cache_dir')
