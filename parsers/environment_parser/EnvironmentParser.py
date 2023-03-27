@@ -53,7 +53,7 @@ def bin_search(begin, end, timestamp: TimeUnit, logs: list[Power]) -> Power:
 
 class EnvironmentLog(object):
     def __init__(self, args: ParserArgs):
-        logfile = open(args.environment_log_file)
+        logfile = open(args.get_env_log_file())
         lines = logfile.readlines()
         logs = map(lambda line: parse_line(line, args), lines)
         self.raw_logs = list(logs)

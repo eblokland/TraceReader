@@ -1,16 +1,17 @@
 import gzip
+import os
 import pickle
-from typing import Dict
+from typing import Dict, Union
 
 from analysis.function.function import Function
 from parsers.parser_args import ParserArgs
+from trace_reader_utils.file_utils import get_filename
 
 
-def gzip_pickle(obj, args: ParserArgs = None, output_file=None):
-    if args is not None:
-        output_file = args.output_dir + args.shared_filename + '.pickle.gz'
-    elif output_file is None:
-        raise ValueError('Need one of args or output file')
+def gzip_pickle(obj, file_name: Union[str, ParserArgs], overwrite: bool = False):
+    if file_name is None:
+        raise ValueError(f'need a file path')
+    output_file = get_filename(file_name, 'pickle.gz', overwrite)
     with gzip.open(output_file, 'wb') as pickle_file:
         pickle.dump(obj, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
 
@@ -34,3 +35,4 @@ def get_dict_from_pickle(input_file: str) -> Dict:
     if not isinstance(obj, Dict):
         raise TypeError(f'Pickle does not contain a dict')
     return obj
+

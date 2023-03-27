@@ -26,7 +26,7 @@ class PerfDataParser(object):
 
     def _create_report_lib(self) -> ReportLib:
         sp_report = ReportLib()
-        sp_report.SetRecordFile(self.args.simpleperf_log_file)
+        sp_report.SetRecordFile(self.args.get_simpleperf_log_file())
         if self.args.trace_offcpu_mode in sp_report.GetSupportedTraceOffCpuModes():
             sp_report.SetTraceOffCpuMode(self.args.trace_offcpu_mode)
         sp_report.SetSymfs(self.args.binary_cache)

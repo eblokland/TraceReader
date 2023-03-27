@@ -1,7 +1,9 @@
 import csv
-from typing import List, Any
+from typing import List, Any, Optional, Union
 
 from analysis.function.function import Function
+from parsers.parser_args import ParserArgs
+from trace_reader_utils.file_utils import get_filename
 
 csv_header = ['function address', 'name set', 'leaf samples', 'tree samples', 'local probability',
               'nonlocal probability', 'local prob interval', 'nonlocal prob interval', 'local runtime',
@@ -22,7 +24,10 @@ def write_function(writer, fun: Function):
     writer.writerow(arr)
 
 
-def write_csv(output_file: str, functions: List[Function]):
+def write_csv(file_name: Union[str, ParserArgs], functions: List[Function], overwrite: bool = False):
+
+    output_file = get_filename(file_name, ext='.csv', overwrite=overwrite)
+
     with open(output_file, mode='w', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter='\t', quotechar='|')
         writer.writerow(csv_header)
