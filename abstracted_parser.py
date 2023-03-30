@@ -60,7 +60,6 @@ def parse_and_merge(args: ParserArgs):
         merged_list += states
         merged_power_samples += power_samples
 
-
     funs = analyze_state_list(args, merged_list)
     output_filepath = args.output_dir + args.merge_name
     if args.pickle_functions:
@@ -83,7 +82,11 @@ if __name__ == "__main__":
     pa = ParserArgs('./config.ini')
     if not os.path.exists(pa.output_dir):
         os.mkdir(pa.output_dir)
-    if pa.merge:
+    if 'merge' in pa.mode:
         parse_and_merge(pa)
+    elif 'directory' in pa.mode:
+        parse_directory(pa)
+    elif 'single' in pa.mode:
+        parse_single_trace(pa)
     else:
-        parse_directory(pa) if pa.parse_dir else parse_single_trace(pa)
+        print(f'unknown mode string {pa.mode}')

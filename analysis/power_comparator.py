@@ -22,5 +22,10 @@ if __name__ == '__main__':
     file2 = pow_conf.get('file2')
     powers1 = gzip_unpickle(file1)
     powers2 = gzip_unpickle(file2)
+
+    if pow_conf.getboolean('filter_dupes', True):
+        powers1 = set(powers1)
+        powers2 = set(powers2)
+
     res = compare_pow_lists(powers1, powers2)
     print(res)
