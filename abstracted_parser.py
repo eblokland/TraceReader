@@ -1,4 +1,5 @@
 import os
+import sys
 from copy import copy
 from typing import List, Dict
 
@@ -79,7 +80,12 @@ def parse_directory(args: ParserArgs):
 
 
 if __name__ == "__main__":
-    pa = ParserArgs('./config.ini')
+    args = sys.argv
+    if len(args) > 1:
+        config_loc = str(args[1])
+    else:
+        config_loc = './config.ini'
+    pa = ParserArgs(config_loc)
     if not os.path.exists(pa.output_dir):
         os.mkdir(pa.output_dir)
     if 'merge' in pa.mode:

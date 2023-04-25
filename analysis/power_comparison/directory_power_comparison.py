@@ -1,10 +1,13 @@
+import sys
 from configparser import ConfigParser
 
 from analysis.power_comparison.power_comparator import directory_compare
 
 if __name__ == "__main__":
+    args = sys.argv
+    conf_loc = args[1] if len(args) > 1 else './config.ini'
     cfg = ConfigParser()
-    cfg.read('/Users/erikbl/PycharmProjects/TraceReader/config.ini')
+    cfg.read(conf_loc)
     pow_conf = cfg['DIRECTORY_POWCOMP']
     filter_dupes = pow_conf.getboolean('filter_dupes', True)
     directory = pow_conf.get('directory')

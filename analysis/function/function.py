@@ -63,6 +63,7 @@ class Function(object):
         through the probability estimation.
         :param total_samples: Number of samples taken in total
         :param total_runtime_seconds: Runtime of the program in total.
+        :param filter_dupes: Whether to filter duplicate power measurements, where the hardware had not yet updated.
         """
         self._set_prob(total_samples)
         self._set_runtime(total_runtime_seconds)
