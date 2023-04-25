@@ -13,7 +13,7 @@ class LogType(Enum):
     CELL_STR = 'cellular'
 
 
-def parse_line(line: str, args: ParserArgs):
+def parse_line(line: str, current_divider: float):
     split = line.strip().split(sep=' ')
     logtype = split[1].lower()
     if logtype == LogType.DISPLAY_STATE.value:
@@ -25,13 +25,14 @@ def parse_line(line: str, args: ParserArgs):
     elif logtype == LogType.WIFI_STR.value:
         return WifiStrength(split)
     elif logtype == LogType.CURRENT.value:
-        return Current(split, args.current_divider)
+        return Current(split, current_divider)
     elif logtype == LogType.WIFI_ROAM.value:
         return WifiRoam(split)
     elif logtype == LogType.CELL_STR.value:
         return CellStrength(split)
     else:
         print('unexpected line, got ' + line)
+
 
 
 class Entry(object):

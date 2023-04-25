@@ -26,6 +26,17 @@ def single_file_compare(file1: str, file2: str, filter_dupes: bool) -> float:
     res = compare_pow_lists(powers1, powers2)
     return res
 
+def single_file_compare_withavg(file1: str, file2: str, filter_dupes: bool):
+    powers1 = gzip_unpickle(file1)
+    powers2 = gzip_unpickle(file2)
+    if filter_dupes:
+        powers1 = set(powers1)
+        powers2 = set(powers2)
+    res = compare_pow_lists(powers1, powers2)
+    avg1 = sum(list(map(lambda samp: samp.power, powers1))) / len(powers1)
+    avg2 = sum(list(map(lambda samp: samp.power, powers2))) / len(powers2)
+    return res, avg1, avg2
+
 
 def directory_compare(directory: str, filter_dupes: bool, output_file: str, decimals: Optional[int] = None):
     file_list: List[str] = os.listdir(directory)
