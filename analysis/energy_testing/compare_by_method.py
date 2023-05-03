@@ -81,7 +81,7 @@ def _retrieve_filtered_dicts(directory: str, function_filter: [Optional[Callable
     file_paths = [f'{directory}/{file}' for file in files]
 
     function_dicts = [{fun_id: fun for fun_id, fun in fun_dict.items()
-                       if function_filter is None or function_filter(fun)}
+                       if function_filter(fun)} if function_filter is not None else fun_dict
                       for file in file_paths if (fun_dict := validate_pickle(file)) is not None]
 
     return function_dicts
