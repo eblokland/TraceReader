@@ -22,8 +22,8 @@ def validate_pickle(file: str) -> Optional[MutableMapping[Any, Function]]:
         return None
 
 
-
-def _combine_dicts(*, target_dict: MutableMapping[Any, Function], other_dict: MutableMapping[Any, Function]) -> MutableMapping[Any, Function]:
+def _combine_dicts(*, target_dict: MutableMapping[Any, Function], other_dict: MutableMapping[Any, Function]) -> \
+MutableMapping[Any, Function]:
     target_key_view = target_dict.keys()
     for (key, value) in other_dict.items():
         if key not in target_key_view:
@@ -80,13 +80,9 @@ def _retrieve_filtered_dicts(directory: str, function_filter: [Optional[Callable
     files = os.listdir(directory)
     file_paths = [f'{directory}/{file}' for file in files]
 
-    function_dicts = [x for file in file_paths if (x := validate_pickle(file)) is not None]
-
-    if function_filter is not None:
-        for fd in function_dicts:
-            for (key, fun) in fd.items():
-                if not function_filter(fun):
-                    fd.pop(key)
+    function_dicts = [{fun_id: fun for fun_id, fun in fun_dict.items()
+                       if function_filter is None or function_filter(fun)}
+                      for file in file_paths if (fun_dict := validate_pickle(file)) is not None]
 
     return function_dicts
 
@@ -127,8 +123,9 @@ def compare_directories_by_method(dir1: str, dir2: str,
 
     return results, unmatched
 
+
 def compare_directories_by_method_string(dir1: str, dir2: str,
-                                  function_filter: [Optional[Callable[[Function], bool]]] = None) -> \
+                                         function_filter: [Optional[Callable[[Function], bool]]] = None) -> \
         Tuple[List[FunctionEnergySumResult], List[FunctionEnergySum]]:
     dir1_sums = get_fes_from_dir(dir1, function_filter)
     dir2_sums = get_fes_from_dir(dir2, function_filter)
@@ -136,7 +133,7 @@ def compare_directories_by_method_string(dir1: str, dir2: str,
     results: List[FunctionEnergySumResult] = list()
     unmatched: List[FunctionEnergySum] = list()
 
-    #dir2_kvs = dir2_sums.items()
+    # dir2_kvs = dir2_sums.items()
 
     for value in dir1_sums.values():
         matched = False
@@ -151,7 +148,6 @@ def compare_directories_by_method_string(dir1: str, dir2: str,
 
     unmatched += list(dir2_sums.values())
     return results, unmatched
-
 
 
 def write_results_csv(directory: str, filename: str, results: List[FunctionEnergySumResult],
