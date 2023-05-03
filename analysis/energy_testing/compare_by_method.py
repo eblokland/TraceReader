@@ -1,10 +1,11 @@
 import copy
+import csv
 import os
 from typing import Optional, Callable, Dict, List, Any, MutableMapping, Union, Tuple
 
 import scipy.stats as stats
 
-from analysis.energy_testing.function_energy_sum import FunctionEnergySum
+from analysis.energy_testing.function_energy_sum import FunctionEnergySum, FunctionEnergySumResult
 from analysis.function.function import Function
 from trace_reader_utils.pickle_utils import get_dict_from_pickle
 
@@ -19,6 +20,7 @@ def validate_pickle(file: str) -> Optional[MutableMapping[Any, Function]]:
         return None
     except TypeError:
         return None
+
 
 def _merge_by_identifier(dict: MutableMapping[Any, Function]):
     raise NotImplementedError('Implement me')
@@ -72,7 +74,6 @@ def get_function_sums_from_dicts(dicts: List[MutableMapping[Any, Function]]) -> 
 
 def get_function_energy_sums_from_dicts(dicts: List[MutableMapping[Any, Function]]) -> MutableMapping[
     Any, FunctionEnergySum]:
-
     sum_dict: Dict[Any, FunctionEnergySum] = dict()
     for d in dicts:
         _add_dict_to_sum(sum_dict, d)
@@ -82,7 +83,6 @@ def get_function_energy_sums_from_dicts(dicts: List[MutableMapping[Any, Function
 
 def _retrieve_filtered_dicts(directory: str, function_filter: [Optional[Callable[[Function], bool]]] = None) -> \
         List[MutableMapping[Any, Function]]:
-
     files = os.listdir(directory)
     file_paths = [f'{directory}/{file}' for file in files]
 
@@ -99,23 +99,21 @@ def _retrieve_filtered_dicts(directory: str, function_filter: [Optional[Callable
 
 def get_function_sums_from_dir(directory: str, function_filter: [Optional[Callable[[Function], bool]]] = None) -> \
         MutableMapping[Any, Function]:
-
     return get_function_sums_from_dicts(_retrieve_filtered_dicts(directory, function_filter))
 
 
 def get_fes_from_dir(directory: str, function_filter: [Optional[Callable[[Function], bool]]] = None) -> \
         MutableMapping[Any, FunctionEnergySum]:
-
     return get_function_energy_sums_from_dicts(_retrieve_filtered_dicts(directory, function_filter))
 
 
 def compare_directories_by_method(dir1: str, dir2: str,
-                                  function_filter: [Optional[Callable[[Function], bool]]] = None) -> Tuple[List[
-        Tuple[FunctionEnergySum, Any]], List[FunctionEnergySum]]:
+                                  function_filter: [Optional[Callable[[Function], bool]]] = None) -> \
+        Tuple[List[FunctionEnergySumResult], List[FunctionEnergySum]]:
     dir1_sums = get_fes_from_dir(dir1, function_filter)
     dir2_sums = get_fes_from_dir(dir2, function_filter)
 
-    results: List[(FunctionEnergySum, FunctionEnergySum, Any)] = list()
+    results: List[FunctionEnergySumResult] = list()
     unmatched: List[FunctionEnergySum] = list()
 
     # iterate over every item from dir1, and see if it's in dir 2
@@ -131,6 +129,35 @@ def compare_directories_by_method(dir1: str, dir2: str,
 
     # now, we've looked at everything in dir1, and anything left in dir2 was unmatched
     # add the dir2 ones to unmatched
-    unmatched += [dir2_sums.values()]
+    unmatched += list(dir2_sums.values())
 
     return results, unmatched
+
+
+def write_results_csv(directory: str, filename: str, results: List[FunctionEnergySumResult],
+                      unmatched: Optional[List[FunctionEnergySum]] = None):
+    filepath = f'{directory}/{filename}.csv'
+    if os.path.isfile(filepath):
+        raise FileExistsError(f'File {filepath} exists')
+
+    def sort_key(res: FunctionEnergySumResult) -> float:
+        return (res.sum1.median_local() + res.sum2.median_local()) / 2
+
+    results.sort(key=sort_key, reverse=True)
+
+    with open(filepath, 'w') as csv_file:
+        writer = csv.writer(csv_file, delimiter='\t')
+        writer.writerow(FunctionEnergySumResult.get_csv_header())
+        for res in results:
+            writer.writerow(res.get_csv_line())
+
+    if unmatched is not None:
+        unmatched_path = f'{directory}/{filename}_unmatched.csv'
+        if os.path.isfile(unmatched_path):
+            print('WARNING: unmatched already existed, quitting')
+        else:
+            with open(unmatched_path, 'w') as unmatched_csv:
+                writer = csv.writer(unmatched_csv, delimiter='\t')
+                writer.writerow(FunctionEnergySum.get_csv_header())
+                for um_sum in unmatched:
+                    writer.writerow(um_sum.get_csv_line())

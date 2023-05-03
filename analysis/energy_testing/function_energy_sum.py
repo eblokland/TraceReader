@@ -1,6 +1,8 @@
 import copy
 from typing import Optional, Union, Set, List
 
+from numpy import median
+
 from analysis.function.function import Function
 
 
@@ -12,6 +14,20 @@ class FunctionEnergySumResult(object):
         self.local_res = local_res
         self.nonlocal_res = nonlocal_res
         self.test_id = test_id
+
+    @staticmethod
+    def get_csv_header():
+        return ['Addr', 'Name_set', 'Local Energy Result',
+                'Nonlocal Energy Result', 'Test Name', 'Local median 1', 'local median 2',
+                'nonlocal median 1', 'nonlocal median 2']
+
+    def get_csv_line(self):
+        addr_str = f'{self.sum1.addr} - ' + str(self.sum2.addr) if self.sum1.addr != self.sum2.addr else ''
+        return [addr_str, str(self.sum1.name_set.union(self.sum2.name_set)),
+                str(self.local_res), str(self.nonlocal_res), self.test_id,
+                str(median(self.sum1.local_energies)), str(median(self.sum2.local_energies)),
+                str(median(self.sum1.non_local_energies)), str(median(self.sum2.non_local_energies))
+                ]
 
 
 class FunctionEnergySum(object):
@@ -56,3 +72,27 @@ class FunctionEnergySum(object):
             test(self.non_local_energies, other.non_local_energies),
             test.__name__
         )
+
+    def median_local(self):
+        return median(self.local_energies)
+
+    def median_nonlocal(self):
+        return median(self.non_local_energies)
+
+    @staticmethod
+    def get_csv_header():
+        return [
+            'Addr',
+            'Name Set',
+            'Median Local Energy',
+            'Median Nonlocal Energy',
+        ]
+
+    def get_csv_line(self):
+        return [
+            str(self.addr),
+            str(self.name_set),
+            str(median(self.local_energies)),
+            str(median(self.non_local_energies))
+        ]
+
