@@ -22,12 +22,8 @@ def validate_pickle(file: str) -> Optional[MutableMapping[Any, Function]]:
         return None
 
 
-def _merge_by_identifier(dict: MutableMapping[Any, Function]):
-    raise NotImplementedError('Implement me')
 
-
-def _combine_dicts(*, target_dict: MutableMapping[Any, Function], other_dict: MutableMapping[Any, Function],
-                   merge_by_identifier: bool = False) -> MutableMapping[Any, Function]:
+def _combine_dicts(*, target_dict: MutableMapping[Any, Function], other_dict: MutableMapping[Any, Function]) -> MutableMapping[Any, Function]:
     target_key_view = target_dict.keys()
     for (key, value) in other_dict.items():
         if key not in target_key_view:
@@ -37,8 +33,6 @@ def _combine_dicts(*, target_dict: MutableMapping[Any, Function], other_dict: Mu
             target_fun = target_dict[key]
             target_fun += value
 
-    if merge_by_identifier:
-        _merge_by_identifier(target_dict)
     return target_dict
 
 
@@ -133,6 +127,32 @@ def compare_directories_by_method(dir1: str, dir2: str,
 
     return results, unmatched
 
+def compare_directories_by_method_string(dir1: str, dir2: str,
+                                  function_filter: [Optional[Callable[[Function], bool]]] = None) -> \
+        Tuple[List[FunctionEnergySumResult], List[FunctionEnergySum]]:
+    dir1_sums = get_fes_from_dir(dir1, function_filter)
+    dir2_sums = get_fes_from_dir(dir2, function_filter)
+
+    results: List[FunctionEnergySumResult] = list()
+    unmatched: List[FunctionEnergySum] = list()
+
+    #dir2_kvs = dir2_sums.items()
+
+    for value in dir1_sums.values():
+        matched = False
+        for (key2, value2) in dir2_sums.items():
+            if not value.name_set.isdisjoint(value2.name_set):
+                results.append(value.compare(value2, stats.mannwhitneyu))
+                dir2_sums.pop(key2)
+                matched = True
+                break
+        if not matched:
+            unmatched.append(value)
+
+    unmatched += list(dir2_sums.values())
+    return results, unmatched
+
+
 
 def write_results_csv(directory: str, filename: str, results: List[FunctionEnergySumResult],
                       unmatched: Optional[List[FunctionEnergySum]] = None):
@@ -140,8 +160,8 @@ def write_results_csv(directory: str, filename: str, results: List[FunctionEnerg
     if os.path.isfile(filepath):
         raise FileExistsError(f'File {filepath} exists')
 
-    def sort_key(res: FunctionEnergySumResult) -> float:
-        return (res.sum1.median_local() + res.sum2.median_local()) / 2
+    def sort_key(result: FunctionEnergySumResult) -> float:
+        return (result.sum1.median_local() + result.sum2.median_local()) / 2
 
     results.sort(key=sort_key, reverse=True)
 

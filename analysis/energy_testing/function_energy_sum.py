@@ -24,7 +24,7 @@ class FunctionEnergySumResult(object):
     def get_csv_line(self):
         addr_str = f'{self.sum1.addr} - ' + str(self.sum2.addr) if self.sum1.addr != self.sum2.addr else ''
         return [addr_str, str(self.sum1.name_set.union(self.sum2.name_set)),
-                str(self.local_res), str(self.nonlocal_res), self.test_id,
+                str(self.local_res.pvalue), str(self.nonlocal_res.pvalue), self.test_id,
                 str(median(self.sum1.local_energies)), str(median(self.sum2.local_energies)),
                 str(median(self.sum1.non_local_energies)), str(median(self.sum2.non_local_energies))
                 ]
