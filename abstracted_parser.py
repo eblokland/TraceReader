@@ -1,6 +1,6 @@
 import os
 import sys
-from copy import copy
+from copy import copy, deepcopy
 from typing import List, Dict
 
 from analysis.function.function import Function
@@ -10,6 +10,8 @@ from parsers.parse_to_abstract import parse_to_abstract
 from parsers.parser_args import ParserArgs
 from trace_reader_utils.pickle_utils import gzip_pickle
 from trace_representation.app_sample import AppState, PowerSample
+
+from multiprocessing import Pool
 
 
 def parse_single_trace(args: ParserArgs):
@@ -71,12 +73,16 @@ def parse_and_merge(args: ParserArgs):
 
 
 def parse_directory(args: ParserArgs):
-    new_args = copy(args)
-    directory = new_args.simpleperf_log_dir
-    files = os.listdir(directory)
-    for file in filter(lambda f: _filter_valid_files(args, f), files):
-        new_args.shared_filename = str(file).removesuffix('.data')
-        parse_single_trace(new_args)
+    files = os.listdir(args.simpleperf_log_dir)
+
+    def get_args_for_file(file: str, old_args: ParserArgs):
+        file_args = deepcopy(old_args)
+        file_args.shared_filename = str(file).removesuffix('.data')
+        return file_args
+
+    with Pool() as p:
+        filtered_args = [(get_args_for_file(file, args)) for file in files if _filter_valid_files(args, file)]
+        p.map(parse_single_trace, filtered_args)
 
 
 if __name__ == "__main__":
