@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import math
 from typing import Set, MutableSet, Union, Collection, List
 
@@ -47,6 +48,11 @@ class Function(object):
         self.mean_local_power: float = 0
         self.mean_nonlocal_power: float = 0
 
+        # these will be used for post_process on added functions
+        self._total_samples = 0
+        self._total_runtime_seconds = 0
+        self._filter_dupes = True
+
         # prob intervals
 
         self.local_prob_interval: Union[ProbInterval, None] = None
@@ -65,6 +71,10 @@ class Function(object):
         :param total_runtime_seconds: Runtime of the program in total.
         :param filter_dupes: Whether to filter duplicate power measurements, where the hardware had not yet updated.
         """
+        self._total_samples = total_samples
+        self._total_runtime_seconds = total_runtime_seconds
+        self._filter_dupes = filter_dupes
+
         self._set_prob(total_samples)
         self._set_runtime(total_runtime_seconds)
         self._set_power()
@@ -198,3 +208,31 @@ class Function(object):
         string += 'with local_energy_cost: ' + str(self.mean_local_power) + ' and nonlocal energy cost ' + \
                   str(self.mean_nonlocal_power) + ' sample count ' + str(self.num_leaf_samples)
         return string
+
+    def __add__(self, other: "Function"):
+        new_obj = copy.deepcopy(self)
+        new_obj += other
+        return new_obj
+
+    def __iadd__(self, other: "Function"):
+        if not isinstance(other, Function):
+            raise TypeError('Cannot add non-function to function')
+
+        self.name_set += other.name_set
+        self.num_leaf_samples += other.num_leaf_samples
+        self.num_samples += other.num_samples
+        self.time += other.time
+        self.energy += other.energy
+        self.power += other.power
+        self.children += other.children
+
+        self._total_samples += other._total_samples
+        self._total_runtime_seconds += other._total_runtime_seconds
+
+        if (self._filter_dupes != other._filter_dupes):
+            print(f'WARNING: filter dupes is not set equally between'
+                  f'{self} and {other}.  Re-generate these with'
+                  f'equal settings before continuing.')
+
+        self.post_process(self._total_samples, self._total_runtime_seconds, self._filter_dupes)
+        return self

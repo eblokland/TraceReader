@@ -1,5 +1,6 @@
 # python versions of simpleperf data structures.
 # yes, this is very memory inefficient.  just download more ram
+import copy
 from typing import List
 
 from simpleperf_report_lib import CallChainStructure, CallChainEntryStructure, SymbolStruct
@@ -89,6 +90,11 @@ class TimePeriod(object):
         """
         self.local_time = local_time
         self.accumulated_time = accumulated_time
+
+    def __add__(self, other: "TimePeriod"):
+        new_self = copy.copy(self)
+        new_self += other
+        return new_self
 
     def __iadd__(self, other):
         if not isinstance(other, TimePeriod):

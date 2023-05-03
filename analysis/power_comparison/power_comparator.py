@@ -38,7 +38,7 @@ def single_file_compare_withavg(file1: str, file2: str, filter_dupes: bool):
     return res, avg1, avg2
 
 
-def     directory_compare(directory: str, filter_dupes: bool, output_file: str, decimals: Optional[int] = None):
+def directory_compare(directory: str, filter_dupes: bool, output_file: str, decimals: Optional[int] = None):
     file_list: List[str] = os.listdir(directory)
     filtered_files_list = list(filter(lambda file: '_power' in file, file_list))
     filtered_files_list.sort()
