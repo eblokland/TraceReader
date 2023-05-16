@@ -42,8 +42,8 @@ def _filter_valid_files(args: ParserArgs, filename):
     str_file = str(filename)
     if str_file.endswith('.data'):
         shared_name = str_file.removesuffix('.data')
-        if not os.path.exists(f'{args.environment_log_dir}{shared_name}.txt'):
-            print(f'Warning, failed to find matching env log at {args.environment_log_dir}{shared_name}.txt ')
+        if not os.path.exists(f'{args.env_dir()}{shared_name}.txt'):
+            print(f'Warning, failed to find matching env log at {args.env_dir()}{shared_name}.txt ')
             return False
         return True
     return False
@@ -56,7 +56,7 @@ def parse_and_merge(args: ParserArgs):
     new_args = copy(args)
     merged_list: List[AppState] = []
     merged_power_samples: List[PowerSample] = []
-    files = os.listdir(args.simpleperf_log_dir)
+    files = os.listdir(args.log_dir())
     for file in filter(lambda f: _filter_valid_files(args, f), files):
         new_args.shared_filename = str(file).removesuffix('.data')
         (states, power_samples) = parse_to_abstract(new_args)
@@ -71,9 +71,31 @@ def parse_and_merge(args: ParserArgs):
         fun_list = sorted(list(funs.values()), key=(lambda f: f.local_energy_cost), reverse=True)
         write_csv(output_filepath, fun_list)
 
+def recursive_parse_directory(args: ParserArgs):
 
-def parse_directory(args: ParserArgs):
-    files = os.listdir(args.simpleperf_log_dir)
+    if not os.path.exists(args.output_dir):
+        os.mkdir(args.output_dir)
+
+    if not args.shared_dir:
+        raise NotImplementedError
+    #enforce use of shared_dir here since it's recursively looking anyway
+
+    items = os.listdir(args.shared_dir)
+    directories = [file for file in items if os.path.isdir(f'{args.shared_dir}/{file}')]
+    files = [x for x in items if os.path.isfile(f'{args.shared_dir}/{x}')]
+    if len(files) > 0:
+        parse_directory(args, files=files)
+
+    for dir in directories:
+        newargs = deepcopy(args)
+        newargs.shared_dir = f'{newargs.shared_dir}/{dir}/'
+        newargs.output_dir = f'{newargs.output_dir}/{dir}/'
+        recursive_parse_directory(newargs)
+
+
+def parse_directory(args: ParserArgs, files: List[str] = None):
+    if files is None:
+        files = os.listdir(args.log_dir())
 
     def get_args_for_file(file: str, old_args: ParserArgs):
         file_args = deepcopy(old_args)
@@ -87,11 +109,16 @@ def parse_directory(args: ParserArgs):
 
 if __name__ == "__main__":
     args = sys.argv
-    if len(args) > 1:
+    pa = None
+    if arlen := len(args) == 2:
         config_loc = str(args[1])
-    else:
+        pa = ParserArgs(cfg_file=config_loc)
+    elif arlen == 1:
         config_loc = './config.ini'
-    pa = ParserArgs(config_loc)
+        pa = ParserArgs(cfg_file=config_loc)
+    else:
+        pa = ParserArgs(argv=sys.argv)
+
     if not os.path.exists(pa.output_dir):
         os.mkdir(pa.output_dir)
     if 'merge' in pa.mode:
@@ -100,5 +127,7 @@ if __name__ == "__main__":
         parse_directory(pa)
     elif 'single' in pa.mode:
         parse_single_trace(pa)
+    elif 'recursive' in pa.mode:
+        recursive_parse_directory(pa)
     else:
         print(f'unknown mode string {pa.mode}')

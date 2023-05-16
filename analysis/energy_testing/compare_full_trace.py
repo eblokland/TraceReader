@@ -31,8 +31,8 @@ def sum_full_trace_str(pickle_file: str, function_filter: Optional[Callable[[Fun
 
 @sum_full_trace.register
 def sum_full_trace_dict(funs: dict, function_filter: Optional[Callable[[Function], bool]] = None) -> float:
-    if len(funs) == 0 or not isinstance(list(funs.values())[0], Function):
-        raise TypeError(f'Need list of Function type, got {type(funs[0])}')
+    if (arr_len := len(funs)) == 0 or not isinstance(list_type := list(funs.values())[0], Function):
+        raise TypeError(f'Need list of Function type, got {type(list_type) if arr_len > 0 else "empty list"}')
 
     return sum(fun.energy.local_energy for fun in funs.values() if function_filter is None or not function_filter(fun))
 
