@@ -49,6 +49,11 @@ def _filter_valid_files(args: ParserArgs, filename):
     return False
 
 
+def output_exists(args: ParserArgs):
+    output_path = f'{args.output_dir}/{args.shared_filename}.csv'
+    return os.path.isfile(output_path)
+
+
 def parse_and_merge(args: ParserArgs):
     if not args.merge_name:
         raise AttributeError(f'Need merged filename in args')
@@ -71,20 +76,20 @@ def parse_and_merge(args: ParserArgs):
         fun_list = sorted(list(funs.values()), key=(lambda f: f.local_energy_cost), reverse=True)
         write_csv(output_filepath, fun_list)
 
-def recursive_parse_directory(args: ParserArgs):
 
+def recursive_parse_directory(args: ParserArgs):
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
 
     if not args.shared_dir:
         raise NotImplementedError
-    #enforce use of shared_dir here since it's recursively looking anyway
+    # enforce use of shared_dir here since it's recursively looking anyway
 
     items = os.listdir(args.shared_dir)
     directories = [file for file in items if os.path.isdir(f'{args.shared_dir}/{file}')]
     files = [x for x in items if os.path.isfile(f'{args.shared_dir}/{x}')]
     if len(files) > 0:
-        parse_directory(args, files=files)
+        parse_directory(args, files=files, ignore_existing=True)
 
     for dir in directories:
         newargs = deepcopy(args)
@@ -93,7 +98,7 @@ def recursive_parse_directory(args: ParserArgs):
         recursive_parse_directory(newargs)
 
 
-def parse_directory(args: ParserArgs, files: List[str] = None):
+def parse_directory(args: ParserArgs, files: List[str] = None, ignore_existing: bool = False):
     if files is None:
         files = os.listdir(args.log_dir())
 
@@ -103,7 +108,13 @@ def parse_directory(args: ParserArgs, files: List[str] = None):
         return file_args
 
     with Pool() as p:
-        filtered_args = [(get_args_for_file(file, args)) for file in files if _filter_valid_files(args, file)]
+        filtered_args = [(get_args_for_file(file, args))
+                         for file in files
+                         if _filter_valid_files(args, file)]
+        if ignore_existing:
+            filtered_args = filter(lambda a: not output_exists(a), filtered_args)
+
+
         p.map(parse_single_trace, filtered_args)
 
 

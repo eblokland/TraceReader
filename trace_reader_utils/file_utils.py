@@ -24,7 +24,6 @@ def _get_filename_str(arg: str, ext: str, overwrite: bool = False):
     root = arg.removesuffix(ext)
     return root + ext if overwrite else _get_unique(root, ext)
 
-
 def _get_unique(root: str, ext: str):
     if not os.path.exists(root + ext):
         return root+ext
